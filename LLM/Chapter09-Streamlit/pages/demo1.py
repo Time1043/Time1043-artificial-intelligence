@@ -18,7 +18,7 @@ variable
 {"name": "John", "age": 30, "city": "New York"}
 
 # show image
-image_path = r"D:\code2\python-code\artificial-intelligence\LLM\Chapter09-Streamlit\data\profile.jpg"
+image_path = r"D:\code2\python-code\artificial-intelligence\llm\chapter09-streamlit\data\profile.jpg"
 st.image(image_path, width=200)
 
 # show table

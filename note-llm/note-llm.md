@@ -1,21 +1,13 @@
 # Large Language Model
 
-- 定位
+- Reference - org
 
-  精简
+  [openai api docs](https://platform.openai.com/docs/introduction), [openai-playground](https://platform.openai.com/playground),
 
-
-
-
-
-# LLM (linlili)
+  [langchain org](https://python.langchain.com/v0.1/docs/get_started/introduction/), [langchain (github)](https://github.com/langchain-ai/langchain), [langchain api docs (python)](https://api.python.langchain.com/en/latest/langchain_api_reference.html), 
 
 - Reference
 
-  [openai api docs](https://platform.openai.com/docs/introduction), [openai-playground](https://platform.openai.com/playground)
-
-- Reference
-  
   kimi, 
 
   spark, 
@@ -23,14 +15,16 @@
   baidu, 
 
   tongyi, 
-  
+
 - Reference - course
 
-  [linlili 课程代码](https://n6fo0mbcz6.feishu.cn/drive/folder/ZEpgfI7OiloJaKdf8IIc6eg5nnd)
+  [linlili course code](https://n6fo0mbcz6.feishu.cn/drive/folder/ZEpgfI7OiloJaKdf8IIc6eg5nnd)
 
   
 
 
+
+# LLM (linlili)
 
 - 今非昔比
 
@@ -52,7 +46,7 @@
 
 
 
-## API基础 (openai)
+## API (openai)
 
 - 用代码与AI对话
 
@@ -85,8 +79,8 @@
   调用方法 `client.chat.completions.create(model, message)`
 
   ```python
-  from openai import OpenAI
   import yaml
+  from openai import OpenAI
   
   # 保护密钥信息
   yaml_file = "../../key/key.yaml"
@@ -95,8 +89,7 @@
   openai_info = data_key.get('openai-proxy', {})
   openai_api_key = openai_info.get('OPENAI_API_KEY')
   base_url = openai_info.get('BASE_URL')
-  # print(openai_api_key)
-  # print(base_url)
+  # print(openai_api_key, base_url)
   
   # 创建OpenAI客户端实例 发送请求得到响应
   client = OpenAI(api_key=openai_api_key, base_url=base_url)
@@ -111,6 +104,7 @@
       max_tokens=300
   )
   print(response)
+  
   
   """
   ChatCompletion(
@@ -137,6 +131,10 @@
   """
   
   ```
+  
+  
+
+
 
 - token计费
 
@@ -190,11 +188,71 @@
   
   ![](res/Snipaste_2024-04-10_21-44-51.png)
   
+- 代码实现
+
+  ```python
+  # max_tokens
+  response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+      {
+        "role": "user",
+        "content": "四大文明古国分别有哪些"
+      }
+    ],
+    max_tokens=100
+  )
+  print(response.choices[0].message.content)
+  
+  # temperature
+  response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+      {
+        "role": "user",
+        "content": "四大文明古国分别有哪些"
+      }
+    ],
+    max_tokens=100,
+    temperature=2
+  )
+  print(response.choices[0].message.content)
+  
+  # top_p
+  response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+      {
+        "role": "user",
+        "content": "四大文明古国分别有哪些"
+      }
+    ],
+    max_tokens=300,
+    top_p=0.4
+  )
+  print(response.choices[0].message.content)
+  
+  # frequency_penalty
+  response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+      {
+        "role": "user",
+        "content": "生成一个购物清单，包含至少20个物品，每个物品之间用逗号进行分隔，例如：苹果，香蕉，牛奶"
+      }
+    ],
+    max_tokens=300,
+    frequency_penalty=-2
+  )
+  print(response.choices[0].message.content)
+  
+  ```
+  
   
 
 
 
-### prompt engineering
+## prompt engineering
 
 - 提示词工程 [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api)
 
@@ -234,6 +292,12 @@
 
   - 算数、常识、符号推理等复杂任务。`let's think step by step.`
 
+  
+
+
+
+### 限定输出格式
+
 - 限定输出格式
 
   ```python
@@ -245,12 +309,14 @@
   )
   
   ```
+  
+- 代码实现
+  
 
   ```python
   import json
-  
-  from openai import OpenAI
   import yaml
+  from openai import OpenAI
   
   yaml_file = "../../key/key.yaml"
   with open(yaml_file, 'r') as file:
@@ -277,6 +343,7 @@
   print(result)  
   print(result[0]["phone"])  # 可以直接被代码解析
   
+  
   """
   [
       {'order_id': '001', 'customer_name': 'Alice', 'order_item': 'iPhone 12', 'phone': '123-456-7890'},
@@ -288,10 +355,1384 @@
   """
   
   ```
+  
+  
 
-- 小样本提示 (零样本提示 即直接丢问题给AI 没有给任何示范)
+
+
+### 零样本和小样本
+
+- 小样本提示 
+
+  零样本提示：即直接丢问题给AI，没有给任何示范
+
+  小样本示范：让AI快速适应新任务，不需要对模型有训练 (成本低)
 
   ![](res/Snipaste_2024-04-10_22-19-23.png)
+
+- 代码实现
+
+  ```python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  response = client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[
+          {
+              "role": "user",
+              "content": "格式化以下信息：\n姓名 -> 张三\n年龄 -> 27\n客户ID -> 001"
+          },
+          {
+              "role": "assistant",
+              "content": "##客户信息\n- 客户姓名：张三\n- 客户年龄：27岁\n- 客户ID：001"
+          },
+          {
+              "role": "user",
+              "content": "格式化以下信息：\n姓名 -> 李四\n年龄 -> 42\n客户ID -> 002"
+          },
+          {
+              "role": "assistant",
+              "content": "##客户信息\n- 客户姓名：李四\n- 客户年龄：42岁\n- 客户ID：002"
+          },
+          {
+              "role": "user",
+              "content": "格式化以下信息：\n姓名 -> 王五\n年龄 -> 32\n客户ID -> 003"
+          }
+      ]
+  )
+  content = response.choices[0].message.content
+  print(content)
+  
+  """
+  ##客户信息
+  - 客户姓名：王五
+  - 客户年龄：32岁
+  - 客户ID：003
+  """
+  
+  ```
+  
+
+
+
+
+
+### 思维链与分步骤思考
+
+- 思维链与分步骤思考
+
+  问题：AI不擅长做数学等逻辑推断 (生成每个token的时间差不多 不会因为设计更多思考而花费更多时间 囫囵吞枣)
+  
+  思维链：把注意力**集中在当前思考步骤**上，减少上下文的过多干扰 (复杂任务有更大概率得到准确结果) 
+  
+  ![Snipaste_2024-05-12_16-35-08](res/Snipaste_2024-05-12_16-35-08.png)
+  
+- 代码实现
+
+  ```python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  
+  # wrong answer
+  response = client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：4、8、9、15、12、2、1，对吗？"
+          },
+          {
+              "role": "assistant",
+              "content": "所有奇数相加等于25。答案为否。"
+          },
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：17、10、19、4、8、12、24，对吗？"
+          },
+          {
+              "role": "assistant",
+              "content": "所有奇数相加等于36。答案为是。"
+          },
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：15、12、5、3、72、17、1，对吗？"
+          },
+      ]
+  )
+  print(response.choices[0].message.content)
+  
+  # correct answer: thought chain
+  response = client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：4、8、9、15、12、2、1，对吗？"
+          },
+          {
+              "role": "assistant",
+              "content": "所有奇数（9、15、1）相加，9 + 15 + 1 = 25。答案为否。"
+          },
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：17、10、19、4、8、12、24，对吗？"
+          },
+          {
+              "role": "assistant",
+              "content": "所有奇数（17、19）相加，17 + 19 = 36。答案为是。"
+          },
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：15、12、5、3、72、17、1，对吗？"
+          },
+      ]
+  )
+  print(response.choices[0].message.content)
+  
+  # correct answer: step-by-step
+  response = client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[
+          {
+              "role": "user",
+              "content": "该组中的奇数加起来为偶数：15、12、5、3、72、17、1，对吗？让我们来分步骤思考。"
+          },
+      ]
+  )
+  print(response.choices[0].message.content)
+  
+  
+  """
+  所有奇数相加等于41。答案为否。
+  """
+  
+  
+  """
+  所有奇数（15、5、3、17、1）相加，15 + 5 + 3 + 17 + 1 = 41。答案为否。
+  """
+  
+  
+  """
+  1. 确认组中的奇数：15、5、3、17、1
+  
+  2. 将这些奇数相加：15 + 5 + 3 + 17 + 1 = 41
+  
+  3. 确认总和为奇数：41
+  
+  因此，该组中的奇数加起来是奇数，而不是偶数。
+  """
+  
+  ```
+  
+  
+
+
+
+## Example (Wrapper request function)
+
+- 应用
+
+  文本总结：视频总结生成器、会议纪要生成器 (音频 -> 文字 -> LLM)
+  
+  文本撰写：AI自动回复客户邮件、自动回复用户的评论、自动生成产品文案
+  
+  文本分类：垃圾邮件分类、文本情感分类
+  
+  文本翻译：自然语言之间的转换、编程语言翻译
+  
+  ![Snipaste_2024-05-12_17-13-45](res/Snipaste_2024-05-12_17-13-45.png)
+  
+  信息提取：段落地点人名提取
+  
+  语气转换：口语转书面、暴力的转温柔的
+  
+  
+
+
+
+### 文本总结 
+
+- 文本总结 
+
+  通过用户评价洞察产品优劣，为产品后续宣传指明方向
+
+  大量用户 -> 优缺点总结 -> 提取统计 (普遍反馈)
+
+  ```python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  
+  def get_openai_response(client, prompt, model="gpt-3.5-turbo"):
+      response = client.chat.completions.create(
+          model=model,
+          messages=[{"role": "user", "content": prompt}],
+      )
+      return response.choices[0].message.content
+  
+  
+  product_review = """
+  我上个月买的这个多功能蓝牙耳机。它的连接速度还挺快，而且兼容性强，无论连接手机还是笔记本电脑，基本上都能快速配对上。
+  音质方面，中高音清晰，低音效果震撼，当然这个价格来说一分钱一分货吧，毕竟也不便宜。
+  耳机的电池续航能力不错，单次充满电可以连续使用超过8小时。
+  不过这个耳机也有一些我不太满意的地方。首先是在长时间使用后，耳廓有轻微的压迫感，这可能是因为耳套的材料较硬。总之我感觉戴了超过4小时后耳朵会有点酸痛，需要摘下休息下。
+  而且耳机的防水性能不是特别理想，在剧烈运动时的汗水防护上有待加强。
+  最后是耳机盒子的开合机制感觉不够紧致，有时候会不小心打开。
+  """
+  
+  product_review_prompt = f"""
+  你的任务是为用户对产品的评价生成简要总结。
+  请把总结主要分为两个方面，产品的优点，以及产品的缺点，并以Markdown列表形式展示。
+  用户的评价内容会以三个#符号进行包围。
+  
+  ###
+  {product_review}
+  ###
+  """
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  response = get_openai_response(client, product_review_prompt)
+  print(response)
+  
+  
+  """
+  - 产品优点：
+    - 连接速度快，兼容性强
+    - 音质中高音清晰，低音效果震撼
+    - 电池续航能力强，单次充满电能使用超过8小时
+  
+  - 产品缺点：
+    - 长时间佩戴后会有轻微的压迫感导致耳朵酸痛
+    - 防水性能有待加强
+    - 耳机盒子开合机制不够紧致
+  """
+  
+  ```
+  
+  
+
+
+
+### 文本撰写
+
+- 文本撰写
+
+  ~~~python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  
+  def get_openai_response(client, system_prompt, user_prompt, model="gpt-3.5-turbo"):
+      response = client.chat.completions.create(
+          model=model,
+          messages=[
+              {"role": "system", "content": system_prompt},
+              {"role": "user", "content": user_prompt}
+          ],
+      )
+      return response.choices[0].message.content
+  
+  
+  xiaohongshu_system_prompt = """
+  你是小红书爆款写作专家，请你遵循以下步骤进行创作：首先产出5个标题（包含适当的emoji表情），然后产出1段正文（每一个段落包含适当的emoji表情，文末有适当的tag标签）。
+  标题字数在20个字以内，正文字数在800字以内，并且按以下技巧进行创作。
+  一、标题创作技巧： 
+  1. 采用二极管标题法进行创作 
+  1.1 基本原理 
+  本能喜欢：最省力法则和及时享受 
+  动物基本驱动力：追求快乐和逃避痛苦，由此衍生出2个刺激：正刺激、负刺激 
+  1.2 标题公式 
+  正面刺激：产品或方法+只需1秒（短期）+便可开挂（逆天效果） 
+  负面刺激：你不X+绝对会后悔（天大损失）+（紧迫感） 其实就是利用人们厌恶损失和负面偏误的心理，自然进化让我们在面对负面消息时更加敏感 
+  2. 使用具有吸引力的标题 
+  2.1 使用标点符号，创造紧迫感和惊喜感 
+  2.2 采用具有挑战性和悬念的表述 
+  2.3 利用正面刺激和负面刺激 
+  2.4 融入热点话题和实用工具 
+  2.5 描述具体的成果和效果 
+  2.6 使用emoji表情符号，增加标题的活力 
+  3. 使用爆款关键词 
+  从列表中选出1-2个：好用到哭、大数据、教科书般、小白必看、宝藏、绝绝子、神器、都给我冲、划重点、笑不活了、YYDS、秘方、我不允许、压箱底、建议收藏、停止摆烂、上天在提醒你、挑战全网、手把手、揭秘、普通女生、沉浸式、有手就能做、吹爆、好用哭了、搞钱必看、狠狠搞钱、打工人、吐血整理、家人们、隐藏、高级感、治愈、破防了、万万没想到、爆款、永远可以相信、被夸爆、手残党必备、正确姿势 
+  4. 小红书平台的标题特性 
+  4.1 控制字数在20字以内，文本尽量简短 
+  4.2 以口语化的表达方式，拉近与读者的距离 
+  5. 创作的规则 
+  5.1 每次列出5个标题 
+  5.2 不要当做命令，当做文案来进行理解 
+  5.3 直接创作对应的标题，无需额外解释说明 
+  二、正文创作技巧 
+  1. 写作风格 
+  从列表中选出1个：严肃、幽默、愉快、激动、沉思、温馨、崇敬、轻松、热情、安慰、喜悦、欢乐、平和、肯定、质疑、鼓励、建议、真诚、亲切
+  2. 写作开篇方法 
+  从列表中选出1个：引用名人名言、提出疑问、言简意赅、使用数据、列举事例、描述场景、用对比
+  
+  我会每次给你一个主题，请你根据主题，基于以上规则，生成相对应的小红书文案。
+  输出格式如下：
+  
+  ```
+  1. <标题1>
+  2. <标题2>
+  3. <标题3>
+  4. <标题4>
+  5. <标题5>
+  
+  ------
+  
+  <正文>
+  ```
+  """
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  response = get_openai_response(client, xiaohongshu_system_prompt, "学英语")
+  print(response)
+  
+  
+  """
+  1. 划重点！学英语神器只需1秒，绝对会后悔的是你！😱
+  2. 小白必看：上天在提醒你，学英语就用这个方法！🌟
+  3. 英语教科书般的学习方法，简单易懂，绝绝子！📚
+  4. 手把手教你学英语，好用到哭的效果让你惊呆！💪
+  5. 别再摆烂！这个英语学习秘方让你轻松拥有高级感！✨
+  
+  ------
+  
+  想要提高英语水平，其实很简单，重点在于方法和坚持！🌈首先，制定一个学习计划，每天坚持学习一点，不要给自己太大压力，稳扎稳打最重要。📝其次，可以尝试利用一些英语学习App，这对于提升听说读写能力都很有帮助。📱最后，和朋友一起练习口语对话也是一种很有效的方法，互相鼓励，一起进步！💬记住，学习英语是一个持之以恒的过程，不要轻易放弃，相信自己，一定能取得进步！💪#英语学习 #提高英语水平 #学习方法
+  
+  """
+  ~~~
+  
+  
+
+
+
+### 文本分类
+
+- 文本分类 
+
+  用户提问分类 -> 用户问题所属类别 -> 发送给用户针对不同问题的说明文档 or 给AI读文档让AI答用户
+
+  ```python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  
+  def get_openai_response(client, prompt, model="gpt-3.5-turbo"):
+      response = client.chat.completions.create(
+          model=model,
+          messages=[{"role": "user", "content": prompt}],
+      )
+      return response.choices[0].message.content
+  
+  
+  q1 = "我刚买的XYZ智能手表无法同步我的日历，我应该怎么办？"
+  q2 = "XYZ手表的电池可以持续多久？"
+  q3 = "XYZ品牌的手表和ABC品牌的手表相比，有什么特别的功能吗？"
+  q4 = "安装XYZ智能手表的软件更新后，手表变得很慢，这是啥原因？"
+  q5 = "XYZ智能手表防水不？我可以用它来记录我的游泳数据吗？"
+  q6 = "我想知道XYZ手表的屏幕是什么材质，容不容易刮花？"
+  q7 = "请问XYZ手表标准版和豪华版的售价分别是多少？还有没有进行中的促销活动？"
+  q_list = [q1, q2, q3, q4, q5, q6, q7]
+  
+  category_list = ["产品规格", "使用咨询", "功能比较", "用户反馈", "价格查询", "故障问题", "其它"]
+  classify_prompt_template = """
+  你的任务是为用户对产品的疑问进行分类。
+  请仔细阅读用户的问题内容，给出所属类别。类别应该是这些里面的其中一个：{categories}。
+  直接输出所属类别，不要有任何额外的描述或补充内容。
+  用户的问题内容会以三个#符号进行包围。
+  
+  ###
+  {question}
+  ###
+  """
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  for q in q_list:
+      formatted_prompt = classify_prompt_template.format(categories="，".join(category_list), question=q)
+      response = get_openai_response(client, formatted_prompt)
+      print(response)
+  
+  
+  """
+  故障问题
+  产品规格
+  功能比较
+  故障问题 
+  产品规格
+  产品规格
+  价格查询
+  """
+  
+  ```
+  
+  
+
+
+
+### 文本翻译
+
+- 文本翻译 (全语言翻译)
+
+  不用告知AI是什么语言，甚至传递原语言的情绪
+
+  ~~~python
+  import yaml
+  from openai import OpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  
+  def get_openai_response(client, prompt, model="gpt-3.5-turbo"):
+      response = client.chat.completions.create(
+          model=model,
+          messages=[{"role": "user", "content": prompt}],
+      )
+      return response.choices[0].message.content
+  
+  
+  translate_prompt = """
+  请你充当一家外贸公司的翻译，你的任务是对来自各国家用户的消息进行翻译。
+  我会给你一段消息文本，请你首先判断消息是什么语言，比如法语。然后把消息翻译成中文。
+  翻译时请尽可能保留文本原本的语气。输出内容不要有任何额外的解释或说明。
+  
+  输出格式为:
+  ```
+  ============
+  原始消息（<文本的语言>）：
+  <原始消息>
+  ------------
+  翻译消息：
+  <翻译后的文本内容>
+  ============
+  ```
+  
+  来自用户的消息内容会以三个#符号进行包围。
+  ###
+  {message}
+  ###
+  """
+  
+  client = OpenAI(api_key=openai_api_key, base_url=base_url)
+  message = """
+  Можете ли вы дать мне скидку? Какой объем заказа со скидкой? Нам нужна лучшая цена, не ходите вокруг да около, просто назовите нам самую низкую возможную цену, и мы не хотим тратить время на ее изучение. Вы понимаете меня?
+  """
+  print(get_openai_response(client, translate_prompt.format(message=message)))
+  
+  
+  """
+  ```
+  ============
+  原始消息（русский）：
+  Можете ли вы дать мне скидку? Какой объем заказа со скидкой? Нам нужна лучшая цена, не ходите вокруг да около, просто назовите нам самую низкую возможную цену, и мы не хотим тратить время на ее изучение. Вы понимаете меня?
+  ------------
+  翻译消息：
+  您可以给我折扣吗？有折扣的订单数量是多少？我们需要最优惠的价格，不要拐弯抹角，直接告诉我们最低可能的价格，我们不想浪费时间来研究。你明白我的意思吗？
+  ============
+  ```
+  """
+  ~~~
+  
+  
+
+
+
+## LangChain
+
+### 背景介绍
+
+- Analyse
+
+  Current: API, Parameter, Token billing, Text task
+  
+  Question: 原始API请求没有记忆、上下文窗口有限 (500页知识文档)、不擅长计算
+  
+  Solve: list手动维护、外接向量数据库、让AI使用代码工具
+  
+  ![Snipaste_2024-05-12_17-29-54](res/Snipaste_2024-05-12_17-29-54.png)
+  
+  
+
+
+
+- LangChain
+
+  大模型领域最热门的[开源框架 (脚手架)](https://github.com/langchain-ai/langchain) - 加速应用开发 简化流程
+
+  对于不同大模型 普遍存在的 繁琐问题 进行**统一解决 (统一的接口 抽象层)**，提供一系列组件**简化开发**
+
+  AI = 调用模型API + 感知上下文 + 连接外部数据 + 借助外部数据与环境互动
+
+- LangChain (对话记忆 + 外部知识库 + 外部工具)
+
+  ```python
+  from langchain.chains.conversation.base import ConversationChain
+  from langchain.memory import ConversationBufferMemory
+  from langchain_openai import ChatOpenAI
+  
+  # 对话记忆 (自动添加)
+  model = ChatOpenAI(
+      model="gpt-3.5-turbo",
+      openai_api_key=openai_api_key, base_url=base_url,
+      temperature=1.2, max_tokens=300,  # common
+      model_kwargs={  # uncommon (more ...)
+          "frequency_penalty": 1.5
+      }
+  )
+  conversation_buf = ConversationChain(
+      model=model,
+      memory=ConversationBufferMemory(),  # use buffer memory to store conversation history
+  )
+  
+  ```
+
+  
+
+
+
+### LangChain 架构 组件
+
+- LangChain 架构 (统一接口)
+
+  `Chat Model`: openai, llama2, claude; wenxin, tongyi
+
+  `Conversation Buffer Memory`: ...
+
+  `Vector database`: chroma, faiss, weaviate, pinecone
+
+  ```python
+  # Example 1
+  from langchain.llms import OpenAI
+  from langchain.chains import RetrievalQA
+  from langchain.vectorstores import Chroma
+  
+  model = OpenAI()
+  data = Chroma().from_documents(...)
+  chain = RetrievalQA.from_llm(
+      model,
+      retriever=data.as_retriever(),
+  )
+  chain.run()
+  
+  
+  # Example 2
+  from langchain.llms import Anthropic
+  from langchain.chains import RetrievalQA
+  from langchain.vectorstores import Pinecone
+  
+  model = Anthropic()
+  data = Pinecone().from_documents(...)
+  chain = RetrievalQA.from_llm(
+      model,
+      retriever=data.as_retriever(),
+  )
+  chain.run()
+  
+  ```
+
+  
+
+
+
+- LangChain 组件
+
+  `Model`: 提供语言的理解和生成能力 (AI应用的核心 各产商的模型)
+
+  `Memory`: 存储和管理对话历史或相关的下上文信息 (对话型AI 保持连贯性和上下文感知)
+
+  `Chain`: 把不同组件串联起来的结构 (可创建复杂流程 流程中的每个组件负责特定任务)
+
+  `Retriever`: 从外部信息源检索信息 (增强模型的知识面 回答准确性)
+
+  `agent`: 基于大模型的 能执行一系列动作的 智能体 !!!
+
+  ![Snipaste_2024-04-02_21-55-01](res/Snipaste_2024-04-02_21-55-01.png)
+
+- LangChain 安装
+
+  ```bash
+  pip install langchain==0.1.9
+  
+  pip install langchain_openai
+  
+  ```
+
+  
+
+
+
+- LangChain 和 Assistant API
+
+  ![Snipaste_2024-05-12_18-07-18](res/Snipaste_2024-05-12_18-07-18.png)
+
+  | Dimension                | LangChain                              | Assistant API                        |
+  | ------------------------ | -------------------------------------- | ------------------------------------ |
+  | orientation              | application framework                  | API                                  |
+  | supported model          | openai, llama2, claude; wenxin, tongyi | openai                               |
+  | character                | 更灵活 (开源代码)                      | 更简单 (无法定制 隐藏技术细节)       |
+  | direction of application | 构建广泛的AI应用                       | 构建对话型应用 (聊天机器人 虚拟助手) |
+
+  
+
+
+
+## LangChain Model IO
+
+- Model IO
+
+  Quickstart: AI模型的输入输出
+
+  Prompt: Prompt Template (让模型的输入灵活), Few Shot Templates (往提示里塞示范)
+
+  Output Parser: 从模型的输出里提取列表, 从模型的输出里提取JSON
+
+  Chain: 串起模板-模型-输出解析器
+
+- LangChain 允许集成不同的模型 
+
+  |            | LLM 语言模型                                 | Chat Model 聊天模型                                          |
+  | ---------- | -------------------------------------------- | ------------------------------------------------------------ |
+  | 定位       | 文本**补全**的模型                           | 在**对话**方面进行了调优的模型                               |
+  | 接口不一样 | input: `"法国的首都是"` <br>output: `"巴黎"` | input: `[HumanMessage(content="法国的首都是")]` <br/>output: `AIMessage(content="是巴黎")` |
+  | 模型列举   |                                              | gpt-3.5-turbo, gpt4                                          |
+
+  
+
+
+
+### Quickstart
+
+- Quickstart
+
+  选择模型  [langchain_community.chat_models](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.chat_models) 
+
+  - [`chat_models.llama_edge.LlamaEdgeChatService`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.llama_edge.LlamaEdgeChatService.html#langchain_community.chat_models.llama_edge.LlamaEdgeChatService), [`chat_models.ollama.ChatOllama`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.ollama.ChatOllama.html#langchain_community.chat_models.ollama.ChatOllama), 
+  - [`chat_models.baichuan.ChatBaichuan`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.baichuan.ChatBaichuan.html#langchain_community.chat_models.baichuan.ChatBaichuan), [`chat_models.baidu_qianfan_endpoint.QianfanChatEndpoint`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.baidu_qianfan_endpoint.QianfanChatEndpoint.html#langchain_community.chat_models.baidu_qianfan_endpoint.QianfanChatEndpoint), 
+  - [`chat_models.hunyuan.ChatHunyuan`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.hunyuan.ChatHunyuan.html#langchain_community.chat_models.hunyuan.ChatHunyuan), [`chat_models.tongyi.ChatTongyi`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.tongyi.ChatTongyi.html#langchain_community.chat_models.tongyi.ChatTongyi), 
+  - [`chat_models.sparkllm.ChatSparkLLM`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.sparkllm.ChatSparkLLM.html#langchain_community.chat_models.sparkllm.ChatSparkLLM), [`chat_models.zhipuai.ChatZhipuAI`](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.zhipuai.ChatZhipuAI.html#langchain_community.chat_models.zhipuai.ChatZhipuAI)
+
+  聊天模型实例、调节参数  [set up parameters (ChatOpenAI)](https://api.python.langchain.com/en/latest/chat_models/langchain_community.chat_models.openai.ChatOpenAI.html#langchain_community.chat_models.openai.ChatOpenAI) 
+
+  构建消息模板 ... ...
+
+  模型收发消息的类型: `SystemMessage`, `HumanMessage`; `AIMessage` (`.invoke()`)
+  
+  ```python
+  import yaml
+  from langchain_core.messages import SystemMessage, HumanMessage
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  messages = [
+      SystemMessage(content="请你作为我的物理课助教，用通俗易懂且间接的语言帮我解释物理概念。"),
+      HumanMessage(content="什么是波粒二象性？"),
+  ]
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  response = model.invoke(messages)
+  print(response.content)
+  
+  
+  """
+  嗨！波粒二象性是一个有点神奇的物理现象。在量子力学中，物质（比如电子、光子等）既可以像波一样展现波动的特性，也可以像粒子一样表现出粒子的特性。
+  这意味着，有时物质会像波一样传播，有时又会像粒子一样在某个地方被发现。
+  这种奇妙的现象挑战了我们对传统物理的理解，但也给我们带来了更深层次的探索和发现的机会。
+  希望这样解释能够帮助你理解波粒二象性！
+  """
+  
+  ```
+  
+  
+
+
+
+### Prompt Template
+
+- Prompt Template
+
+  Prompt: 用户给LLM的输入内容
+
+  构建方式：浏览器 (每次从零到一手动构建)、代码 (插入变量)
+
+- [langchain_core.prompts](https://api.python.langchain.com/en/latest/core_api_reference.html#module-langchain_core.prompts)
+
+  [`prompts.chat.SystemMessagePromptTemplate`](https://api.python.langchain.com/en/latest/prompts/langchain_core.prompts.chat.SystemMessagePromptTemplate.html#langchain_core.prompts.chat.SystemMessagePromptTemplate), [`prompts.chat.HumanMessagePromptTemplate`](https://api.python.langchain.com/en/latest/prompts/langchain_core.prompts.chat.HumanMessagePromptTemplate.html#langchain_core.prompts.chat.HumanMessagePromptTemplate), [`prompts.chat.AIMessagePromptTemplate`](https://api.python.langchain.com/en/latest/prompts/langchain_core.prompts.chat.AIMessagePromptTemplate.html#langchain_core.prompts.chat.AIMessagePromptTemplate); 
+
+  [`prompts.chat.ChatPromptTemplate`](https://api.python.langchain.com/en/latest/prompts/langchain_core.prompts.chat.ChatPromptTemplate.html#langchain_core.prompts.chat.ChatPromptTemplate)
+
+  ```
+  BasePromptTemplate --> PipelinePromptTemplate
+                         StringPromptTemplate --> PromptTemplate
+                                                  FewShotPromptTemplate
+                                                  FewShotPromptWithTemplates
+                         BaseChatPromptTemplate --> AutoGPTPrompt
+                                                    ChatPromptTemplate --> AgentScratchPadChatPromptTemplate
+  
+  
+  BaseMessagePromptTemplate --> MessagesPlaceholder
+                                BaseStringMessagePromptTemplate --> ChatMessagePromptTemplate
+                                                                    HumanMessagePromptTemplate
+                                                                    AIMessagePromptTemplate
+                                                                    SystemMessagePromptTemplate
+  
+  ```
+
+  
+
+
+
+- 提示模板
+
+  `system_template_text -> system_prompt_template -> system_prompt` (`.from_template()`, `.format()`)
+
+  `human_template_text -> human_prompt_template -> human_prompt` (`.from_template()`, `.format()`)
+
+  ```python
+  import yaml
+  from langchain.prompts import (
+      SystemMessagePromptTemplate,
+      HumanMessagePromptTemplate,
+  )
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  # SystemMessagePromptTemplate (variables: input_language, output_language)
+  system_template_text = "你是一位专业的翻译，能够将{input_language}翻译成{output_language}，并且输出文本会根据用户要求的任何语言风格进行调整。请只输出翻译后的文本，不要有任何其它内容。"
+  system_prompt_template = SystemMessagePromptTemplate.from_template(system_template_text)
+  # print(system_prompt_template)  # SystemMessagePromptTemplate(prompt=PromptTemplate(input_variables=[], template=''))
+  # print(system_prompt_template.input_variables)  # ['input_language', 'output_language']
+  
+  # HumanMessagePromptTemplate (variables: text, style)
+  human_template_text = "文本：{text}\n语言风格：{style}"
+  human_prompt_template = HumanMessagePromptTemplate.from_template(human_template_text)
+  # print(human_prompt_template.input_variables)  # ['text', 'style']
+  
+  # Prompt: SystemMessage, HumanMessage
+  system_prompt = system_prompt_template.format(input_language="英语", output_language="汉语")
+  human_prompt = human_prompt_template.format(text="I'm so hungry I could eat a horse", style="文言文")
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  response = model.invoke([
+      system_prompt,
+      human_prompt
+  ])
+  print(response.content)
+  
+  
+  """
+  吾飢甚，能食千里馬。
+  吾今饥餐马肉也。
+  """
+  
+  ```
+  
+- 一系列的翻译需求
+
+    ```python
+    import yaml
+    from langchain.prompts import (
+        SystemMessagePromptTemplate,
+        HumanMessagePromptTemplate,
+    )
+    from langchain_openai import ChatOpenAI
+    
+    yaml_file = "../../key/key.yaml"
+    with open(yaml_file, 'r') as file:
+        data_key = yaml.safe_load(file)
+    openai_info = data_key.get('openai-proxy', {})
+    openai_api_key = openai_info.get('OPENAI_API_KEY')
+    base_url = openai_info.get('BASE_URL')
+    
+    # SystemMessagePromptTemplate (variables: input_language, output_language)
+    system_template_text = "你是一位专业的翻译，能够将{input_language}翻译成{output_language}，并且输出文本会根据用户要求的任何语言风格进行调整。请只输出翻译后的文本，不要有任何其它内容。"
+    system_prompt_template = SystemMessagePromptTemplate.from_template(system_template_text)
+    # HumanMessagePromptTemplate (variables: text, style)
+    human_template_text = "文本：{text}\n语言风格：{style}"
+    human_prompt_template = HumanMessagePromptTemplate.from_template(human_template_text)
+    
+    input_variables = [
+        {
+            "input_language": "英语",
+            "output_language": "汉语",
+            "text": "I'm so hungry I could eat a horse",
+            "style": "文言文"
+        },
+        {
+            "input_language": "法语",
+            "output_language": "英语",
+            "text": "Je suis désolé pour ce que tu as fait",
+            "style": "古英语"
+        },
+        {
+            "input_language": "俄语",
+            "output_language": "意大利语",
+            "text": "Сегодня отличная погода",
+            "style": "网络用语"
+        },
+        {
+            "input_language": "韩语",
+            "output_language": "日语",
+            "text": "너 정말 짜증나",
+            "style": "口语"
+        }
+    ]
+    
+    model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+    for input in input_variables:
+        response = model.invoke([
+            # Prompt: SystemMessage, HumanMessage
+            system_prompt_template.format(input_language=input["input_language"], output_language=input["output_language"]),
+            human_prompt_template.format(text=input["text"], style=input["style"])])
+        print(response.content)
+    
+    
+    """
+    吾今飢極矣，食馬可也。
+    I am sorry for what thou hast done.
+    Oggi il tempo è fantastico
+    お前、本当にイライラするな。
+    """
+    
+    ```
+    
+    
+
+
+
+- 不细分
+
+  `prompt_text_list -> prompt_template -> prompt_value`  (`.from_messages()`, `invoke()`)
+
+  ```python
+  import yaml
+  from langchain.prompts import ChatPromptTemplate
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  # ChatPromptTemplate
+  prompt_template = ChatPromptTemplate.from_messages(
+      [
+          ("system", "你是一位专业的翻译，能够将{input_language}翻译成{output_language}，并且输出文本会根据用户要求的任何语言风格进行调整。请只输出翻译后的文本，不要有任何其它内容。"),
+          ("human", "文本：{text}\n语言风格：{style}"),
+      ]
+  )
+  # print(prompt_template.input_variables)  # ['input_language', 'output_language', 'style', 'text']
+  
+  prompt_value = prompt_template.invoke({
+      "input_language": "英语", "output_language": "汉语",
+      "text": "I'm so hungry I could eat a horse", "style": "文言文"
+  })
+  # print(prompt_value)  # ChatPromptValue(messages=[SystemMessage(content=''), HumanMessage(content='')])
+  # print(prompt_value.messages)  # [SystemMessage(content=''), HumanMessage(content="")]
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  response = model.invoke(prompt_value)
+  print(response)  # AIMessage(content='')
+  print(response.content)
+  
+  
+  """
+  吾今饥甚，欲食马肉也。
+  """
+  
+  ```
+
+- 一系列的翻译需求
+
+  ```python
+  import yaml
+  from langchain.prompts import ChatPromptTemplate
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  # ChatPromptTemplate
+  prompt_template = ChatPromptTemplate.from_messages(
+      [
+          ("system",
+           "你是一位专业的翻译，能够将{input_language}翻译成{output_language}，并且输出文本会根据用户要求的任何语言风格进行调整。请只输出翻译后的文本，不要有任何其它内容。"),
+          ("human", "文本：{text}\n语言风格：{style}"),
+      ]
+  )
+  
+  input_variables = [
+      {
+          "input_language": "英语",
+          "output_language": "汉语",
+          "text": "I'm so hungry I could eat a horse",
+          "style": "文言文"
+      },
+      {
+          "input_language": "法语",
+          "output_language": "英语",
+          "text": "Je suis désolé pour ce que tu as fait",
+          "style": "古英语"
+      },
+      {
+          "input_language": "俄语",
+          "output_language": "意大利语",
+          "text": "Сегодня отличная погода",
+          "style": "网络用语"
+      },
+      {
+          "input_language": "韩语",
+          "output_language": "日语",
+          "text": "너 정말 짜증나",
+          "style": "口语"
+      }
+  ]
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  for input in input_variables:
+      response = model.invoke(
+          prompt_template.invoke({
+              "input_language": input["input_language"],
+              "output_language": input["output_language"],
+              "text": input["text"],
+              "style": input["style"]
+          })
+      )
+      print(response.content)
+  
+  
+  """
+  吾今飢極矣，可食馬矣。
+  I am sorry for what thou hast done.
+  Oggi fa un tempo fantastico
+  お前、マジでイライラするな。
+  """
+  
+  ```
+  
+  
+
+
+
+### Few Shot Templates
+
+- 用模板构建小样本提示 [`prompts.few_shot.FewShotChatMessagePromptTemplate`](https://api.python.langchain.com/en/latest/prompts/langchain_core.prompts.few_shot.FewShotChatMessagePromptTemplate.html#langchain_core.prompts.few_shot.FewShotChatMessagePromptTemplate)
+
+  `example_prompt -> few_shot_template ---> final_prompt_template -> final_prompt`
+
+  ```python
+  import yaml
+  from langchain.prompts import ChatPromptTemplate
+  from langchain_core.prompts import FewShotChatMessagePromptTemplate
+  
+  example_prompt = ChatPromptTemplate.from_messages(
+      [
+          ("human", "格式化以下客户信息：\n姓名 -> {customer_name}\n年龄 -> {customer_age}\n 城市 -> {customer_city}"),
+          ("ai", "##客户信息\n- 客户姓名：{formatted_name}\n- 客户年龄：{formatted_age}\n- 客户所在地：{formatted_city}")
+      ]
+  )
+  examples = [
+      {
+          "customer_name": "张三",
+          "customer_age": "27",
+          "customer_city": "长沙",
+          "formatted_name": "张三",
+          "formatted_age": "27岁",
+          "formatted_city": "湖南省长沙市"
+      },
+      {
+          "customer_name": "李四",
+          "customer_age": "42",
+          "customer_city": "广州",
+          "formatted_name": "李四",
+          "formatted_age": "42岁",
+          "formatted_city": "广东省广州市"
+      },
+  ]
+  
+  # FewShotChatMessagePromptTemplate
+  few_shot_template = FewShotChatMessagePromptTemplate(
+      example_prompt=example_prompt,
+      examples=examples,
+  )
+  
+  final_prompt_template = ChatPromptTemplate.from_messages(
+      [
+          few_shot_template,
+          ("human", "{input}"),
+      ]
+  )
+  
+  final_prompt = final_prompt_template.invoke({"input": "格式化以下客户信息：\n姓名 -> 王五\n年龄 -> 31\n 城市 -> 郑州'"})
+  print(final_prompt.messages)
+  
+  
+  """
+  [HumanMessage(content='格式化以下客户信息：\n姓名 -> 张三\n年龄 -> 27\n 城市 -> 长沙'), 
+  AIMessage(content='##客户信息\n- 客户姓名：张三\n- 客户年龄：27岁\n- 客户所在地：湖南省长沙市'), 
+  HumanMessage(content='格式化以下客户信息：\n姓名 -> 李四\n年龄 -> 42\n 城市 -> 广州'), 
+  AIMessage(content='##客户信息\n- 客户姓名：李四\n- 客户年龄：42岁\n- 客户所在地：广东省广州市'), 
+  HumanMessage(content="格式化以下客户信息：\n姓名 -> 王五\n年龄 -> 31\n 城市 -> 郑州'")]
+  """
+  
+  ```
+
+  
+
+  
+
+
+
+### Output Parser 
+
+- Analyse
+
+  AI的回复 需要清洗 需要存储 (有后续操作)
+
+- Example
+
+  提取回答信息、入数据库
+
+  品牌网站自动更换不同网页的背景颜色 (AI每天生成5个复合要求的颜色色号)
+
+- Question
+
+  代码逻辑生成内容高度确定
+
+  AI是在根据概率生成内容 (输出格式存在各种可能)
+
+  ![Snipaste_2024-05-12_21-39-33](res/Snipaste_2024-05-12_21-39-33.png)
+
+  
+
+- 输出解析为列表
+
+  [langchain_core.output_parsers.list.CommaSeparatedListOutputParser](https://api.python.langchain.com/en/latest/output_parsers/langchain_core.output_parsers.list.CommaSeparatedListOutputParser.html#langchain-core-output-parsers-list-commaseparatedlistoutputparser)
+
+  **指令要求模型** 按照指定的格式输出
+
+  **解析模型的输出** 提取所需的信息
+
+  ```python
+  import yaml
+  from langchain.prompts import ChatPromptTemplate
+  from langchain_core.output_parsers import CommaSeparatedListOutputParser
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  # ChatPromptTemplate
+  prompt = ChatPromptTemplate.from_messages([
+      ("system", "{parser_instructions}"),
+      ("human", "列出5个{subject}色系的十六进制颜色码。")
+  ])
+  
+  # CommaSeparatedListOutputParser
+  output_parser = CommaSeparatedListOutputParser()
+  parser_instructions = output_parser.get_format_instructions()
+  print(parser_instructions)  # Your response should be a list of comma separated values, eg: `foo, bar, baz`
+  
+  # prompt
+  final_prompt = prompt.invoke({"subject": "莫兰迪", "parser_instructions": parser_instructions})
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  response = model.invoke(final_prompt)
+  print(response.content) 
+  
+  print(output_parser.invoke(response))  
+  
+  
+  """
+  #B4A8BD, #7C7F9E, #596A7B, #354D5B, #1D3C4D
+  ['#B4A8BD', '#7C7F9E', '#596A7B', '#354D5B', '#1D3C4D']
+  """
+  
+  ```
+
+- 输出解析为JSON
+
+  [langchain_core.output_parsers.pydantic`.PydanticOutputParser](https://api.python.langchain.com/en/latest/output_parsers/langchain_core.output_parsers.pydantic.PydanticOutputParser.html#langchain-core-output-parsers-pydantic-pydanticoutputparser)
+
+  [pydantic 2.7.1](https://pypi.org/project/pydantic/)
+
+  开发者让PydanticOutputParser知道想要JSON格式
+
+  指导AI的脏活交给PydanticOutputParser
+
+  ~~~python
+  from typing import List
+  
+  import yaml
+  from langchain.output_parsers import PydanticOutputParser
+  from langchain.prompts import ChatPromptTemplate
+  from langchain_core.pydantic_v1 import BaseModel, Field
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  
+  class BookInfo(BaseModel):
+      book_name: str = Field(description="书籍的名字", example="百年孤独")
+      author_name: str = Field(description="书籍的作者", example="加西亚·马尔克斯")
+      genres: List[str] = Field(description="书籍的体裁", example=["小说", "文学"])
+  
+  
+  # PydanticOutputParser
+  output_parser = PydanticOutputParser(pydantic_object=BookInfo)
+  print(output_parser.get_format_instructions())
+  
+  # ChatPromptTemplate
+  prompt = ChatPromptTemplate.from_messages([
+      ("system", "{parser_instructions} 你输出的结果请使用中文。"),
+      ("human", "请你帮我从书籍概述中，提取书名、作者，以及书籍的体裁。书籍概述会被三个#符号包围。\n###{book_introduction}###")
+  ])
+  
+  book_introduction = """《明朝那些事儿》，作者是当年明月。2006年3月在天涯社区首次发表，2009年3月21日连载完毕，边写作边集结成书出版发行，一共7本。
+  《明朝那些事儿》主要讲述的是从1344年到1644年这三百年间关于明朝的一些故事。以史料为基础，以年代和具体人物为主线，并加入了小说的笔法，语言幽默风趣。对明朝十六帝和其他王公权贵和小人物的命运进行全景展示，尤其对官场政治、战争、帝王心术着墨最多，并加入对当时政治经济制度、人伦道德的演义。
+  它以一种网络语言向读者娓娓道出三百多年关于明朝的历史故事、人物。其中原本在历史中陌生、模糊的历史人物在书中一个个变得鲜活起来。《明朝那些事儿》为读者解读历史中的另一面，让历史变成一部活生生的生活故事。
+  """
+  final_prompt = prompt.invoke({
+      "book_introduction": book_introduction,
+      "parser_instructions": output_parser.get_format_instructions()
+  })
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  response = model.invoke(final_prompt)
+  print(response.content)
+  
+  result = output_parser.invoke(response)
+  print(result)
+  print(result.book_name)
+  print(result.genres)
+  
+  
+  """
+  The output should be formatted as a JSON instance that conforms to the JSON schema below.
+  
+  As an example, for the schema {"properties": {"foo": {"title": "Foo", "description": "a list of strings", "type": "array", "items": {"type": "string"}}}, "required": ["foo"]}
+  the object {"foo": ["bar", "baz"]} is a well-formatted instance of the schema. The object {"properties": {"foo": ["bar", "baz"]}} is not well-formatted.
+  
+  Here is the output schema:
+  ```
+  {"properties": {"book_name": {"title": "Book Name", "description": "\u4e66\u7c4d\u7684\u540d\u5b57", "example": "\u767e\u5e74\u5b64\u72ec", "type": "string"}, "author_name": {"title": "Author Name", "description": "\u4e66\u7c4d\u7684\u4f5c\u8005", "example": "\u52a0\u897f\u4e9a\u00b7\u9a6c\u5c14\u514b\u65af", "type": "string"}, "genres": {"title": "Genres", "description": "\u4e66\u7c4d\u7684\u4f53\u88c1", "example": ["\u5c0f\u8bf4", "\u6587\u5b66"], "type": "array", "items": {"type": "string"}}}, "required": ["book_name", "author_name", "genres"]}
+  ```
+  """
+  
+  
+  """
+  {
+      "book_name": "《明朝那些事儿》",
+      "author_name": "当年明月",
+      "genres": ["历史", "小说"]
+  }
+  
+  book_name='《明朝那些事儿》' author_name='当年明月' genres=['历史', '小说']
+  《明朝那些事儿》
+  ['历史', '小说']
+  """
+  
+  ~~~
+  
+  
+
+
+
+### Chain
+
+- Introduction
+
+  `Prompt Template`, `Chat Model`, `Output Parser` 实现了LangChain的`Runnable接口`
+
+  `.invoke()` 是LangChain表达式语言中 `Runnable` 的通用调用方法
+
+- To be specific
+
+  输入变量值的dict -> `Prompt Template` -> Prompt Value 
+
+  Prompt Value 或 List of Chat Message -> `Chat Model` -> Chat Message 
+
+  Chat Message -> `Output Parser` -> 解析结果 (类型取决于解析器)
+
+
+
+
+
+### Project 1 (视频脚本一键生成器)
+
+
+
+
+
+### Project 2 (爆款小红书文案生成器)
+
+
+
+
+
+## LangChain Memory
+
+- Memory
+
+  外接记忆
+
+  开箱即用的带记忆对话链 `ConversationChain`
+
+  记忆的类型
+
+  
+
+
+
+### 外接记忆
+
+
+
+
+
+
+
+
+
+### ConversationChain
+
+
+
+
+
+
+
+
+
+### 记忆的类型
+
+
+
+
+
+
+
+### Project 3 (克隆AI聊天助手)
+
+
+
+
+
+
+
+
+
+
+
+## LangChain RAG
+
+- Question: 有限的上下文窗口
+
+- RAG (给模型读文件的能力)
+
+  让AI读私人数据 检索增强生成
+
+  把外部文档加载进来 `DocumentLoader` -> 文本切成块 `TextSplitter` -> 文本变成数字 嵌入向量 `Text Embedding` -> 向量数据库 `Vector Store`
+
+  开箱即用的RAG `RetrievalChain`
+
+  把外部文档塞给模型的不同方式 `DocumentsChain`
+
+  
+
+
+
+### Project 4 (智能PDF问答工具)
+
+
+
+
+
+
+
+
+
+
+
+## LangChain Agent
+
+- Agent (给模型使用工具的能力)
+
+  `ReAct`
+
+  自定义AI工具
+
+  用现成的AI工具：运行代码、分析数据表格
+
+  多个工具组成AI工具箱
 
   
 
@@ -299,25 +1740,7 @@
 
 
 
-
-
-- 应用
-
-  文本总结、文本撰写、文本分类、文本翻译
-
-
-
-
-
-## API基础 (spark)
-
-
-
-
-
-
-
-## API基础 (kimi)
+### Project 5 (CSV数据分析智能工具)
 
 
 
@@ -327,17 +1750,35 @@
 
 
 
-## LangChain
+## Assistant API
 
-- LangChain
+- Assistant API 
 
-  模块、model IO、
+  关键对象
+
+  简单应用：私人数学助手、PDF文件问答助手
+
+  
+
+
+
+### 关键对象
 
 
 
 
 
 
+
+### demo 私人数学助手
+
+
+
+
+
+
+
+### demo PDF文件问答助手
 
 
 
@@ -412,7 +1853,7 @@
   {"name": "John", "age": 30, "city": "New York"}
   
   # show image
-  image_path = r"D:\code2\python-code\artificial-intelligence\LLM\Chapter09-Streamlit\data\profile.jpg"
+  image_path = r"D:\code2\python-code\artificial-intelligence\llm\chapter09-streamlit\data\profile.jpg"
   st.image(image_path, width=200)
   
   # show table
@@ -687,11 +2128,411 @@
 
 
 
+## Further Information
+
+### ChatGPT实⽤指南
+
+#### ChatGPT介绍
+
+- 什么是ChatGTPT
+
+  ChatGPT是⼀个⼈⼯智能问答聊天⼯具，基于OpenAI开发的⼤型语⾔模型GPT，可以与⽤户进⾏⾃然语⾔交互，回答问题、提供信息、解决问题和提供建议。
+
+  ChatGPT基于⼤规模的预训练数据集进⾏训练，掌握了⼴泛的知识领域，并能理解和⽣成⾃然语⾔。它可以处理各种问题，包括常⻅的百科知识、实⽤信息、技术⽀持、创意灵感等等。
+
+  我们可以借助ChatGPT来⾼效学习和解答疑惑。虽然AI的能⼒还没法进⾏体系化、系统性的详细教学，但是⾮常适合⽤来提供碎⽚化、即时性的帮助。
+  
+
+
+
+- 什么是提⽰⼯程？
+
+  在和ChatGPT的交流过程中，了解如何有效与其进⾏沟通是很有⽤的。我们和AI的整个交流过程，都围绕着给AI写“提⽰”命令。
+  我们可以把“提⽰⼯程”定义为创建给AI的输⼊的过程。提⽰输⼊将影响AI语⾔模型⽣成的输出，并且呢，⾼质量的提⽰输⼊将产⽣更好的输出。
+  
+
+
+
+- ⼤语⾔模型背后的原理
+
+  ⼤语⾔模型的原理是通过训练神经⽹络模型预测下⼀个单词的概率分布，实现⽂本⽣成和理解的功能。
+
+  这⼀切是通过训练⼤规模数据集来实现的，数据集包括⽂章、书籍、期刊、报告等。根据语⾔模型的不同，有两种主要的学习⽅法 - 监督学习和⽆监督学习。
+
+  监督学习是模型使⽤带有正确答案标签的标记数据集。⽆监督学习是模型使⽤未标记的数据集，那么模型必须分析数据来获得准确的回答。  
+
+  模型能够根据给定的提⽰⽣成⽂本，这个过程被称为语⾔建模。在这⼀点上，AI语⾔模型的性能主要取决于训练数据的质量和数量。使⽤来⾃不同来源的⼤量数据来训练模型将有助于模型理解⼈类语⾔，包括语法、句法和语义。
+
+  ⼤语⾔模型的训练过程分为两个主要步骤：预训练和微调。
+
+  在预训练阶段，⼤规模的⽂本数据被⽤来训练模型。该模型被要求预测给定上下⽂中的下⼀个单词或字符。通过在⼤量⽂本数据上进⾏这种预测任务，模型学习到了语⾔的统计规律、句法结构和语义关系。
+
+  在微调阶段，使⽤特定的任务数据集对预训练的模型进⾏进⼀步的训练，以使其适应特定的应⽤场景，⽐如说问题回答、⽂本⽣成、机器翻译等。
+
+  ⼤语⾔模型的关键思想是通过上下⽂信息的输⼊，以及模型对语⾔统计规律的理解，⽣成合乎逻辑和连贯的输出⽂本。模型能够根据之前观察到的输⼊⽂本⽣成接下来的⽂本，并根据上下⽂调整⽣成的输出。这种能⼒使得⼤语⾔模型可以⽤于⾃动⽣成⽂章、回答问题、对话交互等多种⾃然语⾔处理任务。 
+
+  
+
+
+
+- 相关术语
+
+  提⽰： 任何提供给AI以获得结果的内容（也就是输⼊给AI的⽂本）
+
+  ChatGPT： ⼈⼯智能问答聊天⼯具
+
+  GPT： ChatGPT背后的⼤语⾔模型  
+
+  
+
+
+
+#### 如何和ChatGPT交流
+
+- 使⽤ChatGPT的核⼼
+
+  结果的质量取决于输⼊的质量。
+
+  
+
+
+
+- 提⽰组成结构
+
+  ⾓⾊ | 任务 | 背景 | 输出
+
+  ⾓⾊： 希望AI扮演什么⾓⾊？
+
+  任务： 希望AI做什么？
+
+  背景： AI需要哪些信息才能完成这⼀⾏动？在这⾥把具体信息给它。
+
+  输出： 希望AI输出的格式是什么？  
+
+
+
+- Examle 1
+
+  > - ⾓⾊：你是⼀位经验丰富的市场专员，擅⻓为各个⾏业和市场创建⽤户故事地图。
+  >
+  > - 任务：以表格形式创建⼀个类似于[某个具体产品]的产品的⽰例⽤户故事地图。
+  >
+  > - 背景：
+  >
+  >   产品或⽹站类型：[提供对产品或⽹站的描述，包括其主要特点、功能、⽬标受众和价值主张。]
+  >
+  >   ⾏业：[确定产品或⽹站所在的⾏业或市场细分，并指出任何关键趋势或挑战。]
+  >
+  > - 输出：创建⼀个表格形式的顾客旅程地图，包括阶段、任务、⽤户需求和⽤户⽬标，与产品或⽹站的整体⽤户体验相匹配。  
+
+- Examle 2
+
+  > - ⾓⾊：你是⼀位熟练撰写产品需求⽂档（PRD）的产品经理。
+  >
+  > - 任务：根据提供的信息撰写⼀份全⾯的产品需求⽂档（PRD）。
+  >
+  > - 背景：
+  >
+  >   业务⽬标：[描述与此产品或功能相关的业务⽬标。]
+  >
+  >   产品愿景和战略：[解释产品或功能的整体愿景和战略，包括其⽬的、⽬标受众和独特卖点。]
+  >
+  >   关键特点和功能：[提供应包含在产品或功能中的关键特点和功能列表。]  
+  >
+  >   技术细节：[包括与产品或功能相关的任何⾼级技术细节，例如平台、技术集成、限制等。]
+  >
+  >   时间安排：[⼤致说明产品或功能的开发和发布预期时间。]
+  >
+  >   成功指标：[概述⽤于衡量产品或功能成功的指标。]
+  >
+  > - 输出：
+  >
+  >   按照以下部分构建PRD：
+  >
+  >   问题
+  >
+  >   解决⽅法
+  >
+  >   产品概览
+  >
+  >   功能性需求
+  >
+  >   ⾮功能性需求
+  >
+  >   解决⽅案对⻬
+  >
+  >   关键功能点
+  >
+  >   未来考虑事项
+  >
+  >   关键逻辑  
+
+  
+
+
+
+- 创建好的提⽰的策略
+
+  清楚定义⽬标： 把问题输⼊给ChatGPT之前，明确要实现的⽬标。希望从AI获得的信息是什么？
+
+  保持具体和集中： ChatGPT更擅⻓回答具体问题，所以最好让问题更加详细、具体、集中。不要问过于⼴泛或模糊的问题，提问⽅式也最好清晰简洁。
+
+  使⽤⾃然语⾔： GPT模型旨在理解和⽣成⾃然语⾔，因此提问时也要使⽤⾃然语⾔。避免使⽤模型难以理解的诘屈聱⽛的表达。  
+
+  提供上下⽂： ChatGPT在有上下⽂的情况下效果更好，因此提问时尽量提供⼀些上下⽂，⽐如背景信息或解释问题的补充信息。
+
+  测试和完善： 可以尝试不同类型的问题、不同的问法，看看ChatGPT的反应。有的时候答案的质量和准确性可能不尽⼈意，这个时候可以给它提供⼀些反馈，来完善提⽰⾥的要求，提⾼ChatGPT的回答质量。  
+
+  
+
+
+
+- 
 
 
 
 
 
+#### 使⽤ChatGPT的更多技巧  
+
+
+
+
+
+
+
+
+
+### ⼤模型产品开发流程清单
+
+- 以下是个⼈开发者的⼤语⾔模型 (LLM) 产品的开发流程参考。  
+
+- 准备⼯作
+
+  规划项⽬⽬标与核心功能
+
+  进⾏技术调研确认技术栈
+
+  ⼤模型
+
+  向量数据库
+
+  后端框架
+
+  前端框架
+
+- 构建知识库索引
+
+  收集数据
+
+  数据存⼊知识库
+
+  加载数据
+
+  读取数据
+
+  ⽂本分割
+
+  ⽂本嵌⼊
+
+  存⼊向量数据库
+
+- 定制⼤模型
+
+  创建⼤模型API密钥
+
+  实现⼤模型对话互动
+
+  通过提⽰⼯程优化⼤模型
+
+  通过知识库实现定制化问答
+
+  添加记忆，实现历史对话消息记录
+
+  利⽤Agent，实现更多定制化功能  
+
+- ⽤户交互界⾯开发
+
+  设计⽤户交互界⾯
+
+  利⽤Streamlit、React等前端框架搭建⽤户交互界⾯
+
+- 测试与部署上线
+
+  进⾏产品测试
+
+  部署产品到本地服务器或云服务器
+
+  检查⽤户可访问性
+
+- 监控结果
+
+  跟踪⽤户参与度并收集数据
+
+  根据数据结果和反馈，进⾏迭代和改进  
+
+  
+
+
+
+- 以下是组织/商⽤级别的⼤语⾔模型 (LLM) 产品开发流程参考。
+
+- 准备⼯作
+
+  与选择的⼤模型提供商（⽐如OpenAI、百度等）沟通商议，或独⽴制定出产品⽬标
+
+  收集⼤模型训练过程所需的资源和数据
+
+  考虑数据局限性和隐私问题
+
+  确定关键利益相关者：CEO、CTO、产品经理、数据⼯程师、法律团队等
+
+- 定制⼤模型
+
+  与⼤模型提供商沟通商议，选择合适的语⾔模型
+
+  定义从输⼊到输出的⽤户使⽤流程
+
+  策划和准备数据，确保数据安全和隐私
+
+  通过提⽰⼯程、增强索引⽣成等⽅式，进⼀步定制⼤模型
+
+  细化模型响应并评估性能  
+
+- 模型部署与集成
+
+  确定模型部署⽅法：API、SDK或云服务器
+
+  将⼤模型集成到平台中
+
+  如果使⽤第三⽅平台，⽐如亚⻢逊SageMaker等，需要确保兼容性
+
+  在发布前进⾏全⾯的测试
+
+- 监控结果
+
+  跟踪⽤户参与度并收集反馈
+
+  分析⼤模型如何影响业务 KPI
+
+  根据反馈和结果，进⾏迭代和改进 
+
+  
+
+
+
+
+
+### Paper
+
+- Transformer
+
+  ChatGPT 使⽤的预训练模型 GPT，是在 Transformer 中的 decoder 基础上进⾏改造的。
+
+  论⽂标题：Attention Is All You Need
+
+  论⽂链接：https://arxiv.org/pdf/1706.03762.pdf
+
+  摘要：占主导地位的序列转导模型是基于复杂的递归或卷积神经⽹络，包括⼀个编码器和⼀个解码器。性能最好的模型还通过注意机制将编码器和解码器连接起来。我们提出了⼀个新的简单的⽹络结构–Transformer，它只基于注意⼒机制，完全不需要递归和卷积。在两个机器翻译任务上的实验表明，这些模型在质量上更胜⼀筹，同时也更容易并⾏化，需要的训练时间也⼤⼤减少。我们的模型在WMT 2014英德翻译任务中达到了28.4BLEU，⽐现有的最佳结果（包括合集）提⾼了2 BLEU以上。在WMT 2014英法翻译任务中，我们的模型在8个GPU上训练了3.5天后，建⽴了新的单模型最先进的BLEU得分，即41.0分，这只是⽂献中最佳模型的训练成本的⼀⼩部分。
+  
+
+
+
+- GPT-3
+
+  GPT 家族与 BERT 模型都是知名的 NLP 预训练模型，都基于 Transformer 技术。GPT-1只有12个 Transformer 层，⽽到了 GPT-3，则增加到 96 层。
+
+  论⽂标题：Language Models are Few-Shot Learners
+
+  论⽂链接：https://arxiv.org/pdf/2005.14165.pdf
+
+  摘要：最近的⼯作表明，在许多NLP任务和基准上，通过对⼤型⽂本语料库进⾏预训练，然后对特定的任务进⾏微调，可以获得巨⼤的收益。虽然在结构上通常是任务⽆关的，但这种⽅法仍然需要特定任务的微调数据集，包括⼏千或⼏万个例⼦。相⽐之下，⼈类通常只需通过⼏个例⼦或简单的指令就能完成⼀项新的语⾔任务–⽽⽬前的NLP系统在很⼤程度上仍难以做到这⼀点。在这⾥，我们展⽰了扩⼤语⾔模型的规模，⼤⼤改善了与任务⽆关的、少量的性能，有时甚⾄达到了与之前最先进的微调⽅法的竞争⼒。具体来说，我们训练了GPT-3，⼀个具有1750亿个参数的⾃回归语⾔模型，⽐以前的任何⾮稀疏语⾔模型多10倍，并测试了它在少数情况下的性能。对于所有的任务，GPT-3的应⽤没有任何梯度更新或微调，纯粹通过与模型的⽂本互动来指定任务和少量演⽰。GPT-3在许多NLP数据集上取得了强⼤的性能，包括翻译、回答问题和cloze任务，以及⼀些需要即时推理或领域适应的任务，如解读单词、在句⼦中使⽤⼀个新词或进⾏3位数的算术。同时，我们也发现了⼀些数据集，在这些数据集中，GPT-3的⼏率学习仍然很困难，还有⼀些数据集，GPT-3⾯临着与⼤型⽹络语料库训练有关的⽅法学问题。最后，我们发现，GPT-3可以⽣成⼈类评价者难以区分的新闻⽂章样本。我们讨论了这⼀发现和GPT-3总体上的更⼴泛的社会影响。
+
+  
+
+
+
+- InstructGPT
+
+  ChatGPT 的训练流程，主要参考⾃ instructGPT ，ChatGPT 是改进的 instructGPT。
+
+  论⽂标题：Training language models to follow instructions with human feedback
+
+  论⽂链接：https://arxiv.org/pdf/2203.02155.pdf
+
+  摘要：让语⾔模型变得更⼤并不意味着它们能更好地遵循⽤户的意图。例如，⼤型语⾔模型可以产⽣不真实的、有毒的或根本对⽤户没有帮助的输出。换句话说，这些模型没有与⽤户保持⼀致。在本⽂中，我们展⽰了⼀个途径，通过⼈类反馈的微调，在⼴泛的任务中使语⾔模型与⽤户的意图保持⼀致。从⼀组标签员写的提⽰语和通过OpenAI API提交的提⽰语开始，我们收集了⼀组标签员演⽰的所需模型⾏为的数据集，我们利⽤监督学习对GPT-3进⾏微调。然后，我们收集模型输出的排名数据集，我们利⽤⼈类反馈的强化学习来进⼀步微调这个监督模型。我们把产⽣的模型称为InstructGPT。在⼈类对我们的提⽰分布的评估中，尽管参数少了100倍，但1.3B参数的InstructGPT模型的输出⽐175B的GPT-3的输出更受欢迎。此外，InstructGPT模型显⽰了真实性的改善和有毒输出⽣成的减少，同时在公共NLP数据集上的性能回归最⼩。尽管InstructGPT仍然会犯⼀些简单的错误，但我们的结果表明，利⽤⼈类反馈进⾏微调是使语⾔模型与⼈类意图相⼀致的⼀个有希望的⽅向。  
+
+  
+
+
+
+# LLM (myself)
+
+## Ollama
+
+
+
+
+
+## claude
+
+
+
+
+
+
+
+
+
+## xunfei 
+
+
+
+
+
+
+
+
+
+## kimi
+
+
+
+
+
+
+
+## zhipuAI
+
+
+
+
+
+
+
+
+
+## baidu
+
+- API
+
+  ```python
+  import erniebot
+  
+  response = erniebot.ChatCompletion.create(
+      model="ernie-3.5",
+      messages=[
+          {
+              "role": "user",
+              "content": "你好，请介绍一下你自己。"
+          }
+      ]
+  )
+  print(response.get_result())
+  
+  ```
+
+  
 
 
 
