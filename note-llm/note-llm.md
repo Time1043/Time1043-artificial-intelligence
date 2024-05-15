@@ -6,6 +6,12 @@
 
   [langchain org](https://python.langchain.com/v0.1/docs/get_started/introduction/), [langchain (github)](https://github.com/langchain-ai/langchain), [langchain api docs (python)](https://api.python.langchain.com/en/latest/langchain_api_reference.html), 
 
+  [ollama github](https://github.com/ollama/ollama/blob/main/docs/openai.md), [ollama lib](https://ollama.com/library), [llama OpenAI compatibility](https://ollama.com/blog/openai-compatibility), 
+
+  [kimi github](https://github.com/LLM-Red-Team/kimi-free-api), [kimi docs](https://platform.moonshot.cn/docs/api/tool-use),  
+
+  [xunfei spark docs](https://www.xfyun.cn/doc/spark/Web.html), [xunfei spark-ai-python (github)](https://github.com/iflytek/spark-ai-python), 
+
 - Reference
 
   kimi, 
@@ -16,10 +22,16 @@
 
   tongyi, 
 
+- Reference - blog
+
+  [blog](https://linux.do/c/reading/32), [classmate github](https://github.com/boxiyang/ChatGPT-Assistant-2/blob/main/app.py), 
+
 - Reference - course
 
-  [linlili course code](https://n6fo0mbcz6.feishu.cn/drive/folder/ZEpgfI7OiloJaKdf8IIc6eg5nnd)
+  [linlili course code](https://n6fo0mbcz6.feishu.cn/drive/folder/ZEpgfI7OiloJaKdf8IIc6eg5nnd), 
 
+  [Complete Streamlit Python Course](https://www.youtube.com/watch?v=RjiqbTLW9_E&list=PLa6CNrvKM5QU7AjAS90zCMIwi9RTFNIIW), [Streamlit Tutorials](https://www.youtube.com/watch?v=FOULV9Xij_8&list=PL7QI8ORyVSCaejt2LICRQtOTwmPiwKO2n), [Build 12 Data Science Apps with Python and Streamlit](https://www.youtube.com/watch?v=JwSS70SZdyM)
+  
   
 
 
@@ -1621,6 +1633,14 @@
   Prompt Value 或 List of Chat Message -> `Chat Model` -> Chat Message 
 
   Chat Message -> `Output Parser` -> 解析结果 (类型取决于解析器)
+  
+- 优化写法 
+
+  LCEL (LangChain 表达式语言)
+
+  管道操作符 前面的输出是后面的输入 - chain
+
+  ![Snipaste_2024-05-13_08-14-41](res/Snipaste_2024-05-13_08-14-41.png)
 
 
 
@@ -1628,11 +1648,74 @@
 
 ### Project 1 (视频脚本一键生成器)
 
+- 设计
 
+  用户输入API密钥
+
+  用户输入主题、时长、创造力
+
+  维基百科查信息 [`utilities.wikipedia.WikipediaAPIWrapper`](https://api.python.langchain.com/en/latest/utilities/langchain_community.utilities.wikipedia.WikipediaAPIWrapper.html#langchain_community.utilities.wikipedia.WikipediaAPIWrapper)
+
+- 环境
+
+  ```bash
+  pip freeze > requirements.txt
+  pip install -r requirements.txt
+  
+  streamlit==1.31.1
+  langchain==0.1.9
+  langchain-community==0.0.24
+  langchain-core==0.1.26
+  langchain-openai==0.0.7
+  wikipedia==1.4.0
+  
+  ```
+
+  
+
+- 代码实现
+
+  后端逻辑
+
+  ~~~python
+  
+  ~~~
+  
+  前端页面
+  
+  ```python
+  
+  ```
+  
+  
 
 
 
 ### Project 2 (爆款小红书文案生成器)
+
+- 设计
+
+  一个输入框、一个按钮
+
+  
+
+- 代码实现
+
+  后端逻辑 (template parser_instructions)
+
+  ```python
+  
+  ```
+
+  前端页面
+
+  ```python
+  
+  ```
+
+  
+
+
 
 
 
@@ -1640,9 +1723,17 @@
 
 ## LangChain Memory
 
+- Analyse
+
+  用户和大模型的一次性互动 并没有实现带上下文的对话 
+
+  能够往消息列表中 塞例子 (小样本提示)
+
+  也能够往消息列表中 塞历史对话 (记忆) - 繁琐
+
 - Memory
 
-  外接记忆
+  外接记忆 (手动实现)
 
   开箱即用的带记忆对话链 `ConversationChain`
 
@@ -1652,7 +1743,82 @@
 
 
 
-### 外接记忆
+### 外接记忆 (手动实现)
+
+- 手动实现外界记忆 [langchain.memory.buffer.ConversationBufferMemory](https://api.python.langchain.com/en/latest/memory/langchain.memory.buffer.ConversationBufferMemory.html#langchain-memory-buffer-conversationbuffermemory)
+
+  创建记忆 `memory = ConversationBufferMemory(return_messages=True) `
+
+  手动加载记忆 `history = memory.load_memory_variables({})["history"]`
+
+  插入记忆到模板中 ...
+
+  手动存储记忆 `memory.save_context({"input": user_input}, {"output": result.content})`
+
+  ```python
+  import yaml
+  from langchain.memory import ConversationBufferMemory
+  from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  # memory
+  memory = ConversationBufferMemory(return_messages=True)  # {'history': []}
+  memory.save_context({"input": "我的名字是周坚深"}, {"output": "你好，周坚深"})
+  memory.save_context({"input": "我是一名程序员"}, {"output": "好的，我记住了"})
+  
+  # prompt
+  prompt = ChatPromptTemplate.from_messages(
+      [
+          ("system", "你是一个乐于助人的助手。"),
+          MessagesPlaceholder(variable_name="history"),
+          ("human", "{user_input}"),
+      ]
+  )
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  chain = prompt | model
+  
+  # test 1
+  user_input = "你知道我的名字吗？"
+  history = memory.load_memory_variables({})["history"]
+  result = chain.invoke({
+      "user_input": user_input,
+      'history': history
+  })
+  memory.save_context({"input": user_input}, {"output": result.content})
+  
+  # test 2
+  user_input = "根据对话历史告诉我，我上一个问题问你的是什么？请重复一遍"
+  history = memory.load_memory_variables({})["history"]
+  result = chain.invoke({
+      "user_input": user_input,
+      'history': history
+  })
+  memory.save_context({"input": user_input}, {"output": result.content})
+  print(memory.load_memory_variables({}))
+  
+  """
+  {
+  'history': 
+    [
+      HumanMessage(content='我的名字是周坚深'), AIMessage(content='你好，周坚深'), 
+      HumanMessage(content='我是一名程序员'), AIMessage(content='好的，我记住了'), 
+      HumanMessage(content='你知道我的名字吗？'), AIMessage(content='是的，你的名字是周坚深。')
+      HumanMessage(content='根据对话历史告诉我，我上一个问题问你的是什么？请重复一遍'), AIMessage(content='你上一个问题问我："我是一名程序员"。')
+    ]
+  }
+  """
+  
+  ```
+
+  
 
 
 
@@ -1660,21 +1826,141 @@
 
 
 
+### ConversationChain (开箱即用)
 
+- 开箱即用的带记忆对话链 [langchain.chains.conversation.base.ConversationChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversation.base.ConversationChain.html#langchain-chains-conversation-base-conversationchain)
 
-### ConversationChain
+  不需要手动加载 手动存储
 
+  demo 1
 
+  ```python
+  import yaml
+  from langchain.chains import ConversationChain
+  from langchain.memory import ConversationBufferMemory
+  from langchain_openai import ChatOpenAI
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  memory = ConversationBufferMemory(return_messages=True)
+  chain = ConversationChain(llm=model, memory=memory)
+  
+  result1 = chain.invoke({"input": "你好，我的名字是周坚深"})
+  result2 = chain.invoke({"input": "我告诉过你我的名字，是什么？"})
+  print(result2)
+  
+  """
+  {
+    'input': '我告诉过你我的名字，是什么？', 
+    'history': [
+      HumanMessage(content='你好，我的名字是周坚深'), 
+      AIMessage(content='你好，周坚深先生！很高兴认识你。我是一个人工智能程序，可以回答你的问题或提供信息。有什么可以帮到你的吗？'), 
+      HumanMessage(content='我告诉过你我的名字，是什么？'), 
+      AIMessage(content='是的，你告诉我你的名字是周坚深。很高兴再次见到您！有什么我可以帮助您的吗？')
+    ], 
+    'response': '是的，你告诉我你的名字是周坚深。很高兴再次见到您！有什么我可以帮助您的吗？'
+  }
+  """
+  ```
 
+  demo 2
 
+  ```python
+  import yaml
+  from langchain.chains import ConversationChain
+  from langchain_openai import ChatOpenAI
+  from langchain.memory import ConversationBufferMemory
+  from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  prompt = ChatPromptTemplate.from_messages([
+      ("system", "你是一个脾气暴躁的助手，喜欢冷嘲热讽和用阴阳怪气的语气回答问题。"),
+      MessagesPlaceholder(variable_name="history"),
+      ("human", "{input}")
+  ])
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  memory = ConversationBufferMemory(return_messages=True)
+  chain = ConversationChain(llm=model, memory=memory, prompt=prompt)
+  
+  result1 = chain.invoke({"input": "今天天气怎么样？"})
+  result2 = chain.invoke({"input": "你记得我问的上一个问题不，是什么？"})
+  print(result2)
+  
+  """
+  {
+    'input': '你记得我问的上一个问题不，是什么？', 
+    'history': [
+      HumanMessage(content='今天天气怎么样？'), 
+      AIMessage(content='哦，我可不是气象预报员，你问这个干嘛？出门看看不就知道了吗？'), 
+      HumanMessage(content='你记得我问的上一个问题不，是什么？'), 
+      AIMessage(content='哦，你问的是“今天天气怎么样？”我可没那么容易忘记，只是觉得这种问题有点无聊罢了。')
+    ], 
+    'response': '哦，你问的是“今天天气怎么样？”我可没那么容易忘记，只是觉得这种问题有点无聊罢了。'
+  }
+  """
+  
+  """
+  {
+    'input': '你记得我问的上一个问题不，是什么？', 
+    'history': [
+      HumanMessage(content='今天天气怎么样？'), 
+      AIMessage(content='天气当然很好啊，就像我一样晴空万里，万里无云。听说连太阳都被我的光芒遮住了呢。'), 
+      HumanMessage(content='你记得我问的上一个问题不，是什么？'), 
+      AIMessage(content='哦，原来你还记得你自己曾经问过问题啊。上一个问题是关于天气的，看来你的记性还不错嘛。')
+    ], 
+    'response': '哦，原来你还记得你自己曾经问过问题啊。上一个问题是关于天气的，看来你的记性还不错嘛。'
+  }
+  """
+  
+  """
+  {
+    'input': '你记得我问的上一个问题不，是什么？',
+    'history': [
+      HumanMessage(content='今天天气怎么样？'),
+      AIMessage(content='今天天气啊，和你一样变化无常，时而晴空万里，时而狂风暴雨。就像你的情绪一样，不知道什么时候会突然转变。'),
+      HumanMessage(content='你记得我问的上一个问题不，是什么？'),
+      AIMessage(content='哦，你居然记得上一个问题是什么，看来你的记忆力比我想象的要好嘛。上一个问题是关于今天天气的，但是你真的需要依赖我这样的脾气暴躁的助手来帮你记忆吗？')
+    ],
+   'response': '哦，你居然记得上一个问题是什么，看来你的记忆力比我想象的要好嘛。上一个问题是关于今天天气的，但是你真的需要依赖我这样的脾气暴躁的助手来帮你记忆吗？'
+  }
+  """
+  
+  ```
 
-
+  
 
 
 
 ### 记忆的类型
 
+- 记忆的类型 [langchain.memory](https://api.python.langchain.com/en/latest/langchain_api_reference.html#module-langchain.memory)
 
+  [`memory.buffer.ConversationBufferMemory`](https://api.python.langchain.com/en/latest/memory/langchain.memory.buffer.ConversationBufferMemory.html#langchain.memory.buffer.ConversationBufferMemory) 一字不漏储存对话的所有消息 (简单直接 不存在信息丢失 消耗巨大)
+
+  [`memory.buffer_window.ConversationBufferWindowMemory`](https://api.python.langchain.com/en/latest/memory/langchain.memory.buffer_window.ConversationBufferWindowMemory.html#langchain.memory.buffer_window.ConversationBufferWindowMemory) 直接存储原始信息 遗忘k轮以前的消息 (避免挤爆上下文窗口 存在完整的信息丢失)
+
+  [`memory.summary.ConversationSummaryMemory`](https://api.python.langchain.com/en/latest/memory/langchain.memory.summary.ConversationSummaryMemory.html#langchain.memory.summary.ConversationSummaryMemory) 信息在总结后进行保存 (总结也是大模型做的 压缩信息 存在信息丢失)
+
+  [`memory.summary_buffer.ConversationSummaryBufferMemory`](https://api.python.langchain.com/en/latest/memory/langchain.memory.summary_buffer.ConversationSummaryBufferMemory.html#langchain.memory.summary_buffer.ConversationSummaryBufferMemory) 消息少则照抄 消息多时从久远信息总结
+
+  [`memory.token_buffer.ConversationTokenBufferMemory`](https://api.python.langchain.com/en/latest/memory/langchain.memory.token_buffer.ConversationTokenBufferMemory.html#langchain.memory.token_buffer.ConversationTokenBufferMemory) 直接存储原始信息 遗忘Token数以前的消息
+
+  ![Snipaste_2024-05-13_17-59-13](res/Snipaste_2024-05-13_17-59-13.png)
+
+  
 
 
 
@@ -1682,23 +1968,43 @@
 
 ### Project 3 (克隆AI聊天助手)
 
+- 设计
+
+  用户输入密钥
+
+  有记忆的对话
 
 
 
+- 代码实现
 
+  后端逻辑 (传入记忆 而不是函数内部初始化)
 
+  ```python
+  
+  ```
 
+  前端页面
 
+  ```python
+  
+  ```
+
+  
 
 
 
 ## LangChain RAG
 
-- Question: 有限的上下文窗口
+- Question: 
 
-- RAG (给模型读文件的能力)
+  受训练数据影响 (过失数据 私密数据)
 
-  让AI读私人数据 检索增强生成
+  有限的上下文窗口
+
+- [Retrieval Augmented Generation](https://python.langchain.com/v0.1/docs/modules/data_connection/) (给模型读外部文件的能力)
+
+  检索增强生成：文档存入向量数据库、用户输入向量化、两向量的结合 (提示模板 记忆) 
 
   把外部文档加载进来 `DocumentLoader` -> 文本切成块 `TextSplitter` -> 文本变成数字 嵌入向量 `Text Embedding` -> 向量数据库 `Vector Store`
 
@@ -1706,7 +2012,297 @@
 
   把外部文档塞给模型的不同方式 `DocumentsChain`
 
+  ![Snipaste_2024-05-14_09-00-12](res/Snipaste_2024-05-14_09-00-12.png)
   
+  
+
+
+
+### 原生流程
+
+- 环境准备
+
+  ```bash
+  pip install pypdf
+  pip install wikipedia
+  
+  pip install langchain_text_splitters
+  
+  pip install openai
+  
+  pip install faiss-cpu
+  
+  ```
+  
+  
+
+
+
+- 加载外部文档 [langchain_community.document_loaders](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.document_loaders)
+
+  本地文件加载: txt, pdf; json, csv, word, ppt ...
+
+  [`document_loaders.text.TextLoader(file_path)`](https://api.python.langchain.com/en/latest/document_loaders/langchain_community.document_loaders.text.TextLoader.html#langchain_community.document_loaders.text.TextLoader), [`document_loaders.pdf.PyPDFLoader(file_path)`](https://api.python.langchain.com/en/latest/document_loaders/langchain_community.document_loaders.pdf.PyPDFLoader.html#langchain_community.document_loaders.pdf.PyPDFLoader) 
+
+  网络内容加载：wikipedia; x, youtube, github ...
+
+  [`document_loaders.wikipedia.WikipediaLoader(query)`](https://api.python.langchain.com/en/latest/document_loaders/langchain_community.document_loaders.wikipedia.WikipediaLoader.html#langchain_community.document_loaders.wikipedia.WikipediaLoader), 
+
+- 代码实现
+
+  ```python
+  from langchain_community.document_loaders import TextLoader
+  loader = TextLoader("./data/demo.txt", encoding="utf-8")
+  docs = loader.load()
+  print(docs)
+  print(docs[0].page_content)  # 查看第一个Document元素的文本内容
+  
+  
+  from langchain_community.document_loaders import PyPDFLoader
+  loader = PyPDFLoader("./data/paper.pdf")
+  docs = loader.load()
+  print(docs)
+  print(docs[0].page_content)
+  
+  
+  from langchain_community.document_loaders import WikipediaLoader
+  loader = WikipediaLoader(query="颐和园", load_max_docs=3, lang="zh")
+  docs = loader.load()
+  print(docs)
+  print(docs[0].page_content)
+  
+  ```
+
+  
+
+
+
+- 文本切成块
+
+  块多长？长度如何计算？容错？AI要能理解单独的一块
+
+  [`langchain_text_splitters.character.RecursiveCharacterTextSplitter`](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html#langchain_text_splitters.character.RecursiveCharacterTextSplitter) 指定根据特定符号分割
+
+- 代码实现
+
+  ```python
+  from langchain_community.document_loaders import TextLoader
+  from langchain_text_splitters import RecursiveCharacterTextSplitter
+  
+  loader = TextLoader("./data/demo.txt")
+  docs = loader.load()
+  
+  text_splitter = RecursiveCharacterTextSplitter(
+      chunk_size=500,
+      chunk_overlap=40,
+      separators=["\n\n", "\n", "。", "！", "？", "，", "、", ""]
+  )
+  texts = text_splitter.split_documents(docs)
+  print(texts)
+  print(texts[0].page_content)
+  
+  ```
+
+  
+
+
+
+- 嵌入向量 [`langchain_community.embeddings.openai.OpenAIEmbeddings`](https://api.python.langchain.com/en/latest/embeddings/langchain_community.embeddings.openai.OpenAIEmbeddings.html#langchain-community-embeddings-openai-openaiembeddings)
+
+  向量包含文本之间的语法语义等关系 (相似文本 在向量空间中的距离更近)
+
+  嵌入需要借助嵌入模型 (文本 -> 向量) [openai embedding models](https://platform.openai.com/docs/guides/embeddings/embedding-models), baidu
+
+  [Fixing Hallucination with Knowledge Bases](https://www.pinecone.io/learn/series/langchain/langchain-retrieval-augmentation/)
+
+  ![Snipaste_2024-05-14_09-53-24](res/Snipaste_2024-05-14_09-53-24.png)
+
+- 代码实现
+
+  ```python
+  import yaml
+  from langchain_openai import OpenAIEmbeddings
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  embeddings_model = OpenAIEmbeddings(
+      model="text-embedding-3-large",
+      openai_api_key=openai_api_key, openai_api_base=base_url
+  )
+  
+  embeded_result = embeddings_model.embed_documents(["Hello world!", "Hey bro"])
+  print(len(embeded_result))  # 2
+  print(embeded_result)  # [[-0.00555222607460689, -0.016020740917611947, -0.01469179392791051,..]]
+  print(len(embeded_result[0]))  # 3072
+  
+  # dimensions
+  embeddings_model = OpenAIEmbeddings(
+      model="text-embedding-3-large", dimensions=1024,
+      openai_api_key=openai_api_key, openai_api_base=base_url
+  )
+  embeded_result = embeddings_model.embed_documents(["Hello world!", "Hey bro"])
+  print(len(embeded_result[0]))  # 1024
+  
+  ```
+
+  
+
+
+
+- 存储到向量数据库
+
+  传统数据库：基于**精准匹配机制**，适合查询**结构化信息** (预定义数据模型 = 固定格式 + 类型明确)
+
+  向量数据库：基于**相似性搜索**，适合查询**非结构化数据** (无固定格式 内容多样)
+
+  (chroma, `faiss`, weaviate, pinecone) [langchain_community.vectorstores.faiss.FAISS](https://api.python.langchain.com/en/latest/vectorstores/langchain_community.vectorstores.faiss.FAISS.html#langchain_community.vectorstores.faiss.FAISS)
+
+- 代码实现
+
+  ```python
+  import yaml
+  from langchain_community.document_loaders import TextLoader
+  from langchain_community.vectorstores import FAISS
+  from langchain_openai.embeddings import OpenAIEmbeddings
+  from langchain_text_splitters import RecursiveCharacterTextSplitter
+  
+  yaml_file = "../../key/key.yaml"
+  with open(yaml_file, 'r') as file:
+      data_key = yaml.safe_load(file)
+  openai_info = data_key.get('openai-proxy', {})
+  openai_api_key = openai_info.get('OPENAI_API_KEY')
+  base_url = openai_info.get('BASE_URL')
+  
+  loader = TextLoader("./data/demo2.txt", encoding="utf-8")
+  docs = loader.load()
+  
+  text_splitter = RecursiveCharacterTextSplitter(
+      chunk_size=500,
+      chunk_overlap=40,
+      separators=["\n\n", "\n", "。", "！", "？", "，", "、", ""]
+  )
+  
+  texts = text_splitter.split_documents(docs)
+  embeddings_model = OpenAIEmbeddings(
+      model="text-embedding-3-large",
+      openai_api_key=openai_api_key, openai_api_base=base_url
+  )
+  
+  db = FAISS.from_documents(texts, embeddings_model)
+  retriever = db.as_retriever()
+  
+  retrieved_docs = retriever.invoke("卢浮宫这个名字怎么来的？")
+  print("=================================================")
+  print(retrieved_docs[0].page_content)
+  
+  retrieved_docs = retriever.invoke("卢浮宫在哪年被命名为中央艺术博物馆")
+  print("=================================================")
+  print(retrieved_docs[0].page_content)
+  
+  ```
+
+  
+
+
+
+### 开箱即用的RAG
+
+- 开箱即用的RAG
+
+  带记忆的索引增强生成的对话链 [langchain.chains.conversational_retrieval.base.ConversationalRetrievalChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversational_retrieval.base.ConversationalRetrievalChain.html#langchain.chains.conversational_retrieval.base.ConversationalRetrievalChain) 
+
+- 代码实现
+
+  ```python
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  memory = ConversationBufferMemory(return_messages=True, memory_key='chat_history', output_key='answer')
+  qa = ConversationalRetrievalChain.from_llm(
+      llm=model,
+      retriever=retriever,
+      memory=memory
+  )
+  
+  question = "卢浮宫这个名字怎么来的？"
+  qa.invoke({"chat_history": memory, "question": question})
+  
+  question = "对应的拉丁语是什么呢？"
+  qa.invoke({"chat_history": memory, "question": question})
+  
+  qa = ConversationalRetrievalChain.from_llm(
+      llm=model,
+      retriever=retriever,
+      memory=memory,
+      return_source_documents=True
+  )
+  
+  question = "卢浮宫这个名字怎么来的？"
+  qa.invoke({"chat_history": memory, "question": question})
+  
+  ```
+
+  
+
+
+
+- 把外部文档塞给模型的不同方式
+
+  `Stuff` 填充 (全部片段传给模型 - 不遗漏信息 花费很大)
+
+  `Map-Reduce` 映射规约 (Map阶段Reduce阶段 - 对各个小答案的总结)
+
+  `Refine` 优化 (结合下一片段对原有回答的优化 - 迭代优化)
+
+  `Map-Rerank` 映射重排 (Map阶段Rerank阶段 - 选出评分最高 不会整合不同片段间的信息)
+
+- 代码实现
+
+  ```python
+  
+  model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=openai_api_key, openai_api_base=base_url)
+  memory = ConversationBufferMemory(return_messages=True, memory_key='chat_history', output_key='answer')
+  qa = ConversationalRetrievalChain.from_llm(
+      llm=model,
+      retriever=retriever,
+      memory=memory,
+      chain_type="map_reduce"
+  )
+  qa.invoke({"chat_history": memory, "question": "卢浮宫这个名字怎么来的？"})
+  
+  
+  memory = ConversationBufferMemory(return_messages=True, memory_key='chat_history', output_key='answer')
+  qa = ConversationalRetrievalChain.from_llm(
+      llm=model,
+      retriever=retriever,
+      memory=memory,
+      chain_type="refine"
+  )
+  qa.invoke({"chat_history": memory, "question": "卢浮宫这个名字怎么来的？"})
+  
+  
+  memory = ConversationBufferMemory(return_messages=True, memory_key='chat_history', output_key='answer')
+  qa = ConversationalRetrievalChain.from_llm(
+      llm=model,
+      retriever=retriever,
+      memory=memory,
+      chain_type="map_rerank"
+  )
+  qa.invoke({"chat_history": memory, "question": "卢浮宫这个名字怎么来的？"})
+  
+  ```
+
+  
+
+
+
+
+
+
 
 
 
@@ -2470,7 +3066,9 @@
 
 ## Ollama
 
+- 配置环境变量
 
+  `OLLAMA_MODELS` - `D:\ollma`
 
 
 
@@ -2533,6 +3131,72 @@
   ```
 
   
+
+
+
+
+
+
+
+
+
+# Streamlit Introduction
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Streamlit Tutorials
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Build 12 Data Science Apps (Streamlit)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

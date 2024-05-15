@@ -1,22 +1,28 @@
 # deep-learning-torch
 
-- 参考
+- Reference -org
 
   [torch org](https://pytorch.org/)
 
+- Reference - note
+
   [torch快速入门](https://www.youtube.com/watch?v=ejYbJ7YR_Gk)、[freeCodeCamp torch](https://www.youtube.com/watch?v=V_xro1bcAuA)、
-  
+
   [龙曲良 torch](https://www.bilibili.com/video/BV12B4y1k7b5/)、[龙曲良 torch 同学笔记](https://github.com/WhiteCrow5/PyTorch-LearningNotes)、[龙曲良 torch 同学笔记](https://github.com/Relph1119/deeplearning-with-pytorch-notes)、[龙曲良 torch 同学笔记](https://github.com/QfanNUIST/long_pytorchstudy)、
-  
+
   [torch 视频教程](https://www.bilibili.com/video/BV1Au4m1c7KR/?)、
-  
+
   [PyTorch Course (2022)](https://www.youtube.com/watch?v=v43SlgBcZ5Y)、
-  
+
   [PyTorch 学习笔记 张贤同学](https://pytorch.zhangxiann.com/)、[Jack-Cherish/Deep-Learning](https://github.com/Jack-Cherish/Deep-Learning)、[Mikoto10032/DeepLearning](Mikoto10032/DeepLearning)
-  
+
   [94页论文综述卷积神经网络 arxiv 解读](https://zhuanlan.zhihu.com/p/35388569)、
-  
+
   [LiuEr pytorch](https://www.bilibili.com/video/BV1Y7411d7Ys/)、[note](https://blog.csdn.net/bit452/category_10569531.html)
+
+- Reference - course
+
+  [CSC321 (Toronto)](https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf), 
 
 
 
@@ -1143,7 +1149,7 @@
 
 
 
-# ZhaiYi Deep Learning
+# Deep Learning (ZhaiYi)
 
 - 数学基础
 
@@ -1164,7 +1170,7 @@
 
 
 
-## 基于概念
+## 基础操作
 
 - 总览
 
@@ -1173,6 +1179,982 @@
   常见问题及对策：一切为了泛化能力
 
   梯度下降算法及变体
+
+
+
+- Summary
+
+- Part 1
+
+  hyper-parameters (data, model, train)
+
+  data, data_loader (train, test), check sample
+
+  network model, Instantiate the model
+
+- Part 2
+
+  train (loss, optimizer; evaluation model)
+
+  test (total, correct)
+
+  save (model parameter)
+
+  visualize
+
+  
+
+
+
+### 深度神经网络
+
+#### Linear regression 
+
+- Linear regression problem
+
+  ```python
+  import matplotlib.pyplot as plt
+  import numpy as np
+  import torch
+  
+  # hyper-parameters
+  learning_rate = 0.1
+  num_epochs = 1000
+  
+  # generate some data (w=2, b=1)
+  np.random.seed(42)
+  x = np.random.rand(100, 1)
+  y = 1 + 2 * x + 0.1 * np.random.randn(100, 1)
+  # to pytorch tensor
+  x_tensor = torch.from_numpy(x).float()
+  y_tensor = torch.from_numpy(y).float()
+  
+  # initialize weights and bias (model parameters)
+  w = torch.randn(1, requires_grad=True)
+  b = torch.zeros(1, requires_grad=True)
+  
+  # train
+  for epoch in range(num_epochs):
+      # forward propagation
+      y_pred = x_tensor * w + b
+      loss = ((y_pred - y_tensor) ** 2).mean()
+  
+      # backward propagation
+      loss.backward()
+  
+      # update weights and bias (model parameters)
+      with torch.no_grad():
+          w -= learning_rate * w.grad
+          b -= learning_rate * b.grad
+  
+          # clear gradients for next iteration
+          w.grad.zero_()
+          b.grad.zero_()
+  
+  # print final results
+  print('w:', w, '\nb:', b)
+  
+  # visualize the results
+  plt.plot(x, y, 'o')
+  plt.plot(x_tensor.numpy(), y_pred.detach().numpy())
+  plt.show()
+  
+  ```
+
+  torch
+
+  ```python
+  import numpy as np
+  import torch
+  import torch.nn as nn
+  
+  # hyper-parameters
+  input_dim = 1
+  output_dim = 1
+  learning_rate = 0.1  # for optimizer
+  num_epochs = 1000  # for training
+  
+  # check gpu
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print(device)
+  
+  # generate some data (w=2, b=1)
+  np.random.seed(42)
+  x = np.random.rand(100, 1)
+  y = 1 + 2 * x + 0.1 * np.random.randn(100, 1)
+  # to pytorch tensor
+  x_tensor = torch.from_numpy(x).float().to(device)
+  y_tensor = torch.from_numpy(y).float().to(device)
+  
+  # initialize weights and bias (model parameters)
+  w = torch.randn(1, requires_grad=True)
+  b = torch.zeros(1, requires_grad=True)
+  
+  # model
+  model = nn.Linear(input_dim, output_dim).to(device)
+  
+  # train
+  criterion = nn.MSELoss()
+  optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+  
+  for epoch in range(num_epochs):
+      # forward propagation
+      y_pred = model(x_tensor)  # data to model
+      loss = criterion(y_pred, y_tensor)
+  
+      # backward propagation
+      optimizer.zero_grad()  # clear gradients
+      loss.backward()
+      optimizer.step()  # update weights and bias (model parameters)
+  
+  print('w:', model.weight.data, '\nb:', model.bias.data)
+  
+  ```
+
+  GPU
+
+  ```python
+  # check gpu
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print(device)
+  
+  # model, data (train, test)
+  model = Model(...).to(device)
+  x = x....to(device)
+  y = y....to(device)
+  
+  ```
+
+  
+
+
+
+#### Multi-Layer Perceptron
+
+- Multi-Layer Perceptron
+
+  所有训练完成后，一次测试
+
+  ```python
+  import torch
+  from torchvision import datasets
+  from torchvision import transforms
+  import torch.nn as nn
+  import torch.optim as optim
+  
+  # hyper-parameters
+  batch_size = 100  # for data loader
+  
+  input_size = 28 * 28  # 输入大小
+  hidden_size = 512  # 隐藏层大小
+  num_classes = 10  # 输出大小 (classifications)
+  
+  learning_rate = 0.001  # for optimizer
+  num_epochs = 10  # for training
+  
+  # check gpu
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print(device)
+  
+  # data
+  train_data = datasets.MNIST(root="data/mnist", train=True, transform=transforms.ToTensor(), download=True)
+  test_data = datasets.MNIST(root="data/mnist", train=False, transform=transforms.ToTensor(), download=True)
+  
+  train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+  test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=batch_size, shuffle=False)
+  
+  
+  class MLP(nn.Module):
+      def __init__(self, input_size, hidden_size, num_classes):
+          """
+          init MLP
+          :param input_size: 输入数据的维度
+          :param hidden_size: 隐藏层大小
+          :param num_classes: 输出大小 (classifications)
+          """
+  
+          super(MLP, self).__init__()
+          self.fc1 = nn.Linear(input_size, hidden_size)
+          self.relu = nn.ReLU()
+          self.fc2 = nn.Linear(hidden_size, hidden_size)
+          self.fc3 = nn.Linear(hidden_size, num_classes)
+  
+      def forward(self, x):
+          """
+          forward propagation
+          :param x: 输入数据
+          :return: 输出数据
+          """
+  
+          out = self.fc1(x)
+          out = self.relu(out)
+  
+          out = self.fc2(out)
+          out = self.relu(out)
+  
+          out = self.fc3(out)
+          return out
+  
+  
+  # Instantiate the MLP model
+  model = MLP(input_size, hidden_size, num_classes).to(device)
+  
+  # train (loss, optimizer)
+  criterion = nn.CrossEntropyLoss()
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+  
+  for epoch in range(num_epochs):
+      for i, (images, labels) in enumerate(train_loader):
+          images = images.reshape(-1, 28 * 28).to(device)  # images -> vector
+          labels = labels.to(device)
+  
+          # forward propagation
+          outputs = model(images)  # data to model
+          loss = criterion(outputs, labels)
+  
+          # backward propagation and update parameters
+          optimizer.zero_grad()  # clear gradients
+          loss.backward()
+          optimizer.step()
+  
+          # print loss every 100 steps
+          if (i + 1) % 100 == 0:
+              print(f'Epoch [{epoch + 1}/{num_epochs}], Step [{i + 1}/{len(train_loader)}], Loss: {loss.item():.4f}')
+  
+  # test
+  with torch.no_grad():
+      correct = 0
+      total = 0
+  
+      # from test_loader get images and labels
+      for images, labels in test_loader:
+          images = images.reshape(-1, 28 * 28).to(device)  # images -> vector
+          labels = labels.to(device)
+  
+          # forward propagation
+          outputs = model(images)  # data to model
+          _, predicted = torch.max(outputs.data, 1)  # predicted
+  
+          total += labels.size(0)
+          correct += (predicted == labels).sum().item()
+  
+      # print accuracy
+      print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
+  
+  # save
+  torch.save(model, "output/mnist_mlp_model.pkl")
+  
+  """
+  cuda
+  Epoch [1/10], Step [100/600], Loss: 0.2783
+  Epoch [1/10], Step [200/600], Loss: 0.3115
+  Epoch [1/10], Step [300/600], Loss: 0.1504
+  Epoch [1/10], Step [400/600], Loss: 0.0884
+  Epoch [1/10], Step [500/600], Loss: 0.1849
+  Epoch [1/10], Step [600/600], Loss: 0.0996
+  Epoch [2/10], Step [100/600], Loss: 0.1644
+  Epoch [2/10], Step [200/600], Loss: 0.0943
+  Epoch [2/10], Step [300/600], Loss: 0.1490
+  Epoch [2/10], Step [400/600], Loss: 0.0732
+  Epoch [2/10], Step [500/600], Loss: 0.0564
+  Epoch [2/10], Step [600/600], Loss: 0.0546
+  Epoch [3/10], Step [100/600], Loss: 0.0328
+  Epoch [3/10], Step [200/600], Loss: 0.0418
+  Epoch [3/10], Step [300/600], Loss: 0.0170
+  Epoch [3/10], Step [400/600], Loss: 0.0881
+  Epoch [3/10], Step [500/600], Loss: 0.0326
+  Epoch [3/10], Step [600/600], Loss: 0.0507
+  Epoch [4/10], Step [100/600], Loss: 0.0373
+  Epoch [4/10], Step [200/600], Loss: 0.0533
+  Epoch [4/10], Step [300/600], Loss: 0.0239
+  Epoch [4/10], Step [400/600], Loss: 0.0195
+  Epoch [4/10], Step [500/600], Loss: 0.0348
+  Epoch [4/10], Step [600/600], Loss: 0.0243
+  Epoch [5/10], Step [100/600], Loss: 0.0169
+  Epoch [5/10], Step [200/600], Loss: 0.0208
+  Epoch [5/10], Step [300/600], Loss: 0.0332
+  Epoch [5/10], Step [400/600], Loss: 0.0035
+  Epoch [5/10], Step [500/600], Loss: 0.0308
+  Epoch [5/10], Step [600/600], Loss: 0.0557
+  Epoch [6/10], Step [100/600], Loss: 0.0076
+  Epoch [6/10], Step [200/600], Loss: 0.0045
+  Epoch [6/10], Step [300/600], Loss: 0.0217
+  Epoch [6/10], Step [400/600], Loss: 0.1173
+  Epoch [6/10], Step [500/600], Loss: 0.0122
+  Epoch [6/10], Step [600/600], Loss: 0.0264
+  Epoch [7/10], Step [100/600], Loss: 0.0294
+  Epoch [7/10], Step [200/600], Loss: 0.0173
+  Epoch [7/10], Step [300/600], Loss: 0.0100
+  Epoch [7/10], Step [400/600], Loss: 0.0099
+  Epoch [7/10], Step [500/600], Loss: 0.1083
+  Epoch [7/10], Step [600/600], Loss: 0.0164
+  Epoch [8/10], Step [100/600], Loss: 0.0895
+  Epoch [8/10], Step [200/600], Loss: 0.0031
+  Epoch [8/10], Step [300/600], Loss: 0.0056
+  Epoch [8/10], Step [400/600], Loss: 0.0412
+  Epoch [8/10], Step [500/600], Loss: 0.0095
+  Epoch [8/10], Step [600/600], Loss: 0.0517
+  Epoch [9/10], Step [100/600], Loss: 0.0036
+  Epoch [9/10], Step [200/600], Loss: 0.0097
+  Epoch [9/10], Step [300/600], Loss: 0.0131
+  Epoch [9/10], Step [400/600], Loss: 0.0086
+  Epoch [9/10], Step [500/600], Loss: 0.0060
+  Epoch [9/10], Step [600/600], Loss: 0.0037
+  Epoch [10/10], Step [100/600], Loss: 0.0124
+  Epoch [10/10], Step [200/600], Loss: 0.0240
+  Epoch [10/10], Step [300/600], Loss: 0.0859
+  Epoch [10/10], Step [400/600], Loss: 0.0043
+  Epoch [10/10], Step [500/600], Loss: 0.0114
+  Epoch [10/10], Step [600/600], Loss: 0.0011
+  Accuracy of the network on the 10000 test images: 98.11 %
+  """
+  
+  ```
+
+  
+
+
+
+#### Multiple classification
+
+- Multiple classification problem
+
+  一次训练后 一次测试
+
+  ```python
+  import torch
+  import torchvision
+  import matplotlib.pyplot as plt
+  import torch.nn as nn
+  
+  # hyper-parameters
+  batch_size = 64  # for data loader
+  input_size = 28 * 28
+  output_size = 10
+  num_epochs = 10  # for train
+  
+  # check gpu
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print(device)
+  
+  # data
+  transformation = torchvision.transforms.ToTensor()
+  train_dataset = torchvision.datasets.MNIST(root='data/mnist', train=True, download=True, transform=transformation)
+  test_dataset = torchvision.datasets.MNIST(root='data/mnist', train=False, download=True, transform=transformation)
+  # data loader
+  train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+  test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+  
+  # check samples
+  for i, (images, labels) in enumerate(train_dataloader):
+      print(images.shape, labels.shape)
+  
+      plt.imshow(images[0][0], cmap='gray')
+      plt.show()
+      print(labels[0])
+  
+      if i > 10:
+          break
+  
+  
+  class Model(nn.Module):
+      def __init__(self, input_size, output_size):
+          super().__init__()
+          self.linear = nn.Linear(input_size, output_size)
+  
+      def forward(self, x):
+          logics = self.linear(x)
+          return logics
+  
+  
+  model = Model(input_size, output_size).to(device)
+  
+  # train and test
+  criterion = nn.CrossEntropyLoss()
+  optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+  
+  
+  def evaluate(model, data_loader):
+      model.eval()
+      correct = 0
+      total = 0
+  
+      with torch.no_grad():
+          for x, y in data_loader:
+              x = x.view(-1, input_size).to(device)
+              y = y.to(device)
+  
+              logics = model(x)
+              _, predicted = torch.max(logics.data, 1)
+  
+              total += y.size(0)
+              correct += (predicted == y).sum().item()
+  
+      return correct / total
+  
+  
+  for epoch in range(epoch):
+      model.train()
+      for images, labels in train_dataloader:
+          images = images.view(-1, 28 * 28).to(device)
+          labels = labels.long().to(device)
+  
+          # forward propagation
+          outputs = model(images)
+          loss = criterion(outputs, labels)
+  
+          # backward propagation and update weights
+          optimizer.zero_grad()
+          loss.backward()
+          optimizer.step()
+  
+      accuracy = evaluate(model, test_dataloader)
+      print(f'Epoch {epoch + 1}: test accuracy = {accuracy:.2f}')
+  
+  """
+  Epoch 1: test accuracy = 0.87
+  Epoch 2: test accuracy = 0.88
+  Epoch 3: test accuracy = 0.89
+  Epoch 4: test accuracy = 0.90
+  Epoch 5: test accuracy = 0.90
+  Epoch 6: test accuracy = 0.90
+  Epoch 7: test accuracy = 0.90
+  Epoch 8: test accuracy = 0.91
+  Epoch 9: test accuracy = 0.91
+  Epoch 10: test accuracy = 0.91
+  """
+  
+  ```
+
+  
+
+
+
+### 常见问题及对策
+
+- 常见问题
+
+  overfitting, underfitting
+
+  dropout
+  
+  
+
+
+
+#### overfitting and underfitting
+
+- overfitting, underfitting
+
+  ```python
+  import matplotlib.pyplot as plt
+  import numpy as np
+  import torch
+  import torch.nn as nn
+  from sklearn.model_selection import train_test_split
+  from torch.utils.data import DataLoader, TensorDataset
+  
+  # hyper-parameters
+  num_epochs = 200
+  
+  # Generate data (100 samples; y = x^2 + 1)
+  np.random.seed(32)
+  num_samples = 100
+  X = np.random.uniform(-5, 5, (num_samples, 1))  # 均匀分布
+  Y = X ** 2 + 1 + 5 * np.random.normal(0, 1, (num_samples, 1))  # 正态分布噪声
+  # to torch.float
+  X = torch.from_numpy(X).float()
+  Y = torch.from_numpy(Y).float()
+  # plot scatter
+  plt.scatter(X, Y)
+  plt.show()
+  
+  train_X, test_X, train_Y, test_Y = train_test_split(X, Y, test_size=0.3, random_state=0)
+  train_dataloader = DataLoader(TensorDataset(train_X, train_Y), batch_size=32, shuffle=True)
+  test_dataloader = DataLoader(TensorDataset(test_X, test_Y), batch_size=32, shuffle=False)
+  
+  
+  class LinearRegression(nn.Module):
+      """ underfitting """
+  
+      def __init__(self):
+          super().__init__()
+          self.linear = nn.Linear(1, 1)
+  
+      def forward(self, x):
+          return self.linear(x)
+  
+  
+  class MLP(nn.Module):
+      """ normal """
+  
+      def __init__(self):
+          super().__init__()
+          self.hidden = nn.Linear(1, 8)
+          self.output = nn.Linear(8, 1)
+  
+      def forward(self, x):
+          x = torch.relu(self.hidden(x))
+          return self.output(x)
+  
+  
+  class MLPOverfitting(nn.Module):
+      """ overfitting """
+  
+      def __init__(self):
+          super().__init__()
+          self.hidden1 = nn.Linear(1, 256)
+          self.hidden2 = nn.Linear(256, 256)
+          self.output = nn.Linear(256, 1)
+  
+      def forward(self, x):
+          x = torch.relu(self.hidden1(x))
+          x = torch.relu(self.hidden2(x))
+          return self.output(x)
+  
+  
+  def plot_errors(models, num_epochs, train_dataloader, test_dataloader):
+      loss_fn = nn.MSELoss()
+  
+      train_losses = []
+      test_losses = []
+  
+      # Iterate through each type of model
+      for model in models:
+          optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
+  
+          train_losses_per_model = []
+          test_losses_per_model = []
+  
+          # train and test the model for num_epochs
+          for epoch in range(num_epochs):
+  
+              # train
+              model.train()
+              train_loss = 0
+  
+              for inputs, targets in train_dataloader:
+                  # forward propagation (predict loss)
+                  optimizer.zero_grad()
+                  outputs = model(inputs)
+                  loss = loss_fn(outputs, targets)
+  
+                  # backward propagation
+                  loss.backward()
+                  optimizer.step()
+                  train_loss += loss.item()
+  
+              # calculate average loss for the epoch
+              train_loss /= len(train_dataloader)
+              train_losses_per_model.append(train_loss)
+  
+              # test
+              model.eval()
+              test_loss = 0
+              with torch.no_grad():
+                  for inputs, targets in test_dataloader:
+                      # forward propagation (predict loss)
+                      outputs = model(inputs)
+                      loss = loss_fn(outputs, targets)
+                      test_loss += loss.item()
+  
+                  # calculate average loss for the epoch
+                  test_loss /= len(test_dataloader)
+                  test_losses_per_model.append(test_loss)
+  
+          # return the train and test losses for each model
+          train_losses.append(train_losses_per_model)
+          test_losses.append(test_losses_per_model)
+  
+      return train_losses, test_losses
+  
+  
+  models = [LinearRegression(), MLP(), MLPOverfitting()]
+  train_losses, test_losses = plot_errors(models, num_epochs, train_dataloader, test_dataloader)
+  
+  # visualize the train and test losses for each model
+  for i, model in enumerate(models):
+      plt.figure(figsize=(8, 4))
+      plt.plot(range(num_epochs), train_losses[i], label=f"Train {model.__class__.__name__}")
+      plt.plot(range(num_epochs), test_losses[i], label=f"Test {model.__class__.__name__}")
+      plt.legend()
+      plt.ylim((0, 200))
+      plt.savefig(f"output/demo{i}.png")
+      plt.show()
+  
+  ```
+  
+  ![Snipaste_2024-05-15_11-12-00](res/Snipaste_2024-05-15_11-12-00.png)
+  
+  
+
+
+
+#### dropout
+
+- dropout
+
+  ```python
+  # 导入必要的库
+  import torch
+  import torch.nn as nn
+  import matplotlib.pyplot as plt
+  
+  # hyper-parameters
+  num_samples = 20
+  hidden_size = 200
+  num_epochs = 500  # for train
+  torch.manual_seed(2333)
+  
+  # generate data
+  x_train = torch.unsqueeze(torch.linspace(-1, 1, num_samples), 1)
+  y_train = x_train + 0.3 * torch.randn(num_samples, 1)
+  x_test = torch.unsqueeze(torch.linspace(-1, 1, num_samples), 1)
+  y_test = x_test + 0.3 * torch.randn(num_samples, 1)
+  # plot data
+  plt.scatter(x_train, y_train, c='r', alpha=0.5, label='train')
+  plt.scatter(x_test, y_test, c='b', alpha=0.5, label='test')
+  plt.legend(loc='upper left')
+  plt.ylim((-2, 2))
+  plt.show()
+  
+  # may be overfitting
+  net_overfitting = torch.nn.Sequential(
+      torch.nn.Linear(1, hidden_size),
+      torch.nn.ReLU(),
+      torch.nn.Linear(hidden_size, hidden_size),
+      torch.nn.ReLU(),
+      torch.nn.Linear(hidden_size, 1),
+  )
+  
+  # network with dropout
+  net_dropout = torch.nn.Sequential(
+      torch.nn.Linear(1, hidden_size),
+      torch.nn.Dropout(0.5),  # p=0.5
+      torch.nn.ReLU(),
+      torch.nn.Linear(hidden_size, hidden_size),
+      torch.nn.Dropout(0.5),  # p=0.5
+      torch.nn.ReLU(),
+      torch.nn.Linear(hidden_size, 1),
+  )
+  
+  # train
+  optimizer_overfitting = torch.optim.Adam(net_overfitting.parameters(), lr=0.01)
+  optimizer_dropout = torch.optim.Adam(net_dropout.parameters(), lr=0.01)
+  criterion = nn.MSELoss()
+  
+  for i in range(num_epochs):
+      # forward propagation (predict, loss)
+      pred_overfitting = net_overfitting(x_train)
+      loss_overfitting = criterion(pred_overfitting, y_train)
+      # backward propagation
+      optimizer_overfitting.zero_grad()
+      loss_overfitting.backward()
+      optimizer_overfitting.step()
+  
+      # network with dropout
+      pred_dropout = net_dropout(x_train)
+      loss_dropout = criterion(pred_dropout, y_train)
+      optimizer_dropout.zero_grad()
+      loss_dropout.backward()
+      optimizer_dropout.step()
+  
+  # test
+  net_overfitting.eval()
+  net_dropout.eval()  # without dropout
+  
+  test_pred_overfitting = net_overfitting(x_test)
+  test_pred_dropout = net_dropout(x_test)
+  
+  plt.scatter(x_train, y_train, c='r', alpha=0.3, label='train')
+  plt.scatter(x_test, y_test, c='b', alpha=0.3, label='test')
+  plt.plot(x_test, test_pred_overfitting.data.numpy(), 'r-', lw=2, label='overfitting')
+  plt.plot(x_test, test_pred_dropout.data.numpy(), 'b--', lw=2, label='dropout')
+  plt.legend(loc='upper left')
+  plt.ylim((-2, 2))
+  plt.show()
+  
+  ```
+
+  
+
+
+
+#### Saving and loading model parameters
+
+- Saving and loading tensor
+
+  ```python
+  import torch
+  
+  a = torch.rand(6)
+  b = torch.rand(6)
+  c = torch.rand(6)
+  print([a, b, c])
+  torch.save([a, b, c], "output/tensor_abc")
+  abc_list = torch.load("output/tensor_abc")
+  print(abc_list)
+  
+  tensor_dict = {'a': a, 'b': b, 'c': c}
+  print(tensor_dict)
+  torch.save(tensor_dict, "output/tensor_dict_abc")
+  abc_dict = torch.load("output/tensor_dict_abc")
+  print(abc_dict)
+  
+  ```
+
+- Saving and loading model
+
+  ```python
+  import torch
+  import torch.nn as nn
+  
+  # hyper-parameters
+  input_size = 28 * 28  # 输入大小
+  hidden_size = 512  # 隐藏层大小
+  num_classes = 10  # 输出大小（类别数）
+  
+  
+  class MLP(nn.Module):
+      def __init__(self, input_size, hidden_size, num_classes):
+          """
+          init MLP
+          :param input_size: 输入数据的维度
+          :param hidden_size: 隐藏层大小
+          :param num_classes: 输出大小 (classifications)
+          """
+  
+          super(MLP, self).__init__()
+          self.fc1 = nn.Linear(input_size, hidden_size)
+          self.relu = nn.ReLU()
+          self.fc2 = nn.Linear(hidden_size, hidden_size)
+          self.fc3 = nn.Linear(hidden_size, num_classes)
+  
+      def forward(self, x):
+          """
+          forward propagation
+          :param x: 输入数据
+          :return: 输出数据
+          """
+  
+          out = self.fc1(x)
+          out = self.relu(out)
+  
+          out = self.fc2(out)
+          out = self.relu(out)
+  
+          out = self.fc3(out)
+          return out
+  
+  
+  model = MLP(input_size, hidden_size, num_classes)
+  
+  # way 1: save model parameters
+  torch.save(model.state_dict(), "model/mlp_state_dict.pth")
+  
+  mlp_state_dict = torch.load("model/mlp_state_dict.pth")
+  model_load = MLP(input_size, hidden_size, num_classes)
+  model_load.load_state_dict(mlp_state_dict)
+  
+  # way 2: save entire model
+  torch.save(model, "model/mlp_model.pth")
+  mlp_load = torch.load("model/mlp_model.pth")
+  
+  # way 3: check point
+  torch.save({
+      'epoch': epoch,
+      'model_state_dict': model.state_dict(),
+      'optimizer_state_dict': optimizer.state_dict(),
+      'loss': loss,
+      ...
+  }, PATH)
+  
+  model = TheModelClass(*args, **kwargs)
+  optimizer = TheOptimizerClass(*args, **kwargs)
+  
+  checkpoint = torch.load(PATH)
+  model.load_state_dict(checkpoint['model_state_dict'])
+  optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+  epoch = checkpoint['epoch']
+  loss = checkpoint['loss']
+  
+  model.eval()
+  
+  ```
+
+  
+
+
+
+### 梯度下降算法及变体
+
+#### 三种批量梯度下降
+
+- 批量梯度下降法、随机梯度下降法、小批量梯度下降法
+
+  ```python
+  import torch
+  import torch.nn as nn
+  import numpy as np
+  import matplotlib.pyplot as plt
+  from tqdm import *
+  
+  # hyperparameters
+  n_samples = 1000
+  learning_rate = 0.0001
+  n_epochs = 1000
+  names = ["Batch", "Stochastic", "Minibatch"]  # 批量梯度下降法、随机梯度下降法、小批量梯度下降法
+  batch_size = [n_samples, 1, 128]
+  momentum = [1, 0, 1]
+  losses = [[], [], []]
+  
+  # generate data
+  np.random.seed(0)
+  x = np.linspace(-5, 5, n_samples)
+  y = 0.3 * (x ** 2) + np.random.randn(n_samples)
+  # to Tensor
+  x = torch.unsqueeze(torch.from_numpy(x).float(), 1)
+  y = torch.unsqueeze(torch.from_numpy(y).float(), 1)
+  
+  # dataset
+  dataset = torch.utils.data.TensorDataset(x, y)
+  
+  
+  class Model(nn.Module):
+      def __init__(self):
+          super().__init__()
+          self.hidden1 = nn.Linear(1, 32)
+          self.hidden2 = nn.Linear(32, 32)
+          self.output = nn.Linear(32, 1)
+  
+      def forward(self, x):
+          x = torch.relu(self.hidden1(x))
+          x = torch.relu(self.hidden2(x))
+          return self.output(x)
+  
+  
+  loss_fn = nn.MSELoss()
+  
+  # train
+  for i in range(3):
+      model = Model()
+      optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum[i])
+      dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size[i], shuffle=True)
+      for epoch in tqdm(range(n_epochs), desc=names[i], leave=True, unit=' epoch'):
+          x, y = next(iter(dataloader))
+          optimizer.zero_grad()
+          out = model(x)
+          loss = loss_fn(out, y)
+          loss.backward()
+          optimizer.step()
+          losses[i].append(loss.item())
+  
+  # plot loss
+  for i, loss_list in enumerate(losses):
+      plt.figure(figsize=(12, 4))
+      plt.plot(loss_list)
+      plt.ylim((0, 15))
+      plt.xlabel('Epoch')
+      plt.ylabel('Loss')
+      plt.title(names[i])
+      plt.savefig(f"demo{i}.png")
+      plt.show()
+  
+  ```
+  
+  ![Snipaste_2024-05-15_14-44-27](res/Snipaste_2024-05-15_14-44-27.png)
+  
+  
+
+
+
+#### AdaGrad算法
+
+- AdaGrad算法
+
+  ```python
+  import torch
+  import matplotlib.pyplot as plt
+  
+  # hyperparameters
+  learning_rate = 0.01
+  num_epochs = 100
+  
+  # generate data
+  X = torch.randn(100, 1)
+  y = 2 * X + 3 + torch.randn(100, 1)
+  
+  # initialize parameters
+  w = torch.zeros(1, requires_grad=True)
+  b = torch.zeros(1, requires_grad=True)
+  
+  # optimizer
+  optimizer = torch.optim.Adagrad([w, b], lr=learning_rate)
+  losses = []  # record loss
+  
+  # 训练模型
+  for epoch in range(num_epochs):
+      # forward prediction
+      y_pred = w * X + b  # predicted value
+      loss = torch.mean((y_pred - y) ** 2)  # mean squared error loss
+      losses.append(loss.item())
+      optimizer.zero_grad()
+  
+      # backward propagation
+      loss.backward()
+      optimizer.step()
+  
+  # plot loss
+  plt.plot(losses)
+  plt.xlabel('Epoch')
+  plt.ylabel('Loss')
+  plt.show()
+  
+  ```
+  
+  
+
+
+
+#### 梯度下降
+
+- 梯度下降
+
+  ```python
+  
+  ```
+
+  
+
+
+
+#### 学习率调节器
+
+- 学习率调节器
+
+  ```python
+  
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
