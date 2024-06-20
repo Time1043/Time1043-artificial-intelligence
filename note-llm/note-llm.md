@@ -30,7 +30,9 @@
 
   [linlili course code](https://n6fo0mbcz6.feishu.cn/drive/folder/ZEpgfI7OiloJaKdf8IIc6eg5nnd), 
 
-  [Complete Streamlit Python Course](https://www.youtube.com/watch?v=RjiqbTLW9_E&list=PLa6CNrvKM5QU7AjAS90zCMIwi9RTFNIIW), [Streamlit Tutorials](https://www.youtube.com/watch?v=FOULV9Xij_8&list=PL7QI8ORyVSCaejt2LICRQtOTwmPiwKO2n), [Build 12 Data Science Apps with Python and Streamlit](https://www.youtube.com/watch?v=JwSS70SZdyM)
+  [Complete Streamlit Python Course](https://www.youtube.com/watch?v=RjiqbTLW9_E&list=PLa6CNrvKM5QU7AjAS90zCMIwi9RTFNIIW), [Streamlit Tutorials](https://www.youtube.com/watch?v=FOULV9Xij_8&list=PL7QI8ORyVSCaejt2LICRQtOTwmPiwKO2n), [Build 12 Data Science Apps with Python and Streamlit](https://www.youtube.com/watch?v=JwSS70SZdyM), 
+  
+  [Prompt Engineering Tutorial – Master ChatGPT and LLM Responses (freeCodeCamp.org)](https://www.youtube.com/watch?v=_ZvnD73m40o), [Google Gemini AI Course for Beginners (freeCodeCamp.org)](https://www.youtube.com/watch?v=DJtX3S7qx2s)
   
   
 

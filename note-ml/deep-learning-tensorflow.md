@@ -16,6 +16,10 @@
 
 - Reference - course
 
+  [TensorFlow 2.0 Crash Course (freeCodeCamp.org)](https://www.youtube.com/watch?v=6g4O5UOH304), 
+  
+  [TensorFlow 2.0 Complete Course - Python Neural Networks for Beginners Tutorial (freeCodeCamp.org)](https://www.youtube.com/watch?v=tPYj3fFJGjk), 
+  
   [tensorflow2 long](https://www.bilibili.com/video/BV1G341187tH/), 
 
 
@@ -76,19 +80,7 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-- QuickStart
+- Test
 
   ```python
   import tensorflow as tf
@@ -106,6 +98,8 @@
   
 
 
+
+- QuickStart
 
 
 
@@ -939,7 +933,7 @@ https://keras-zh.readthedocs.io/examples/conv_filter_visualization/
 
 
 
-# tensorflow (long)
+# tensorflow (Long)
 
 ## Basic conception
 
@@ -969,7 +963,11 @@ https://keras-zh.readthedocs.io/examples/conv_filter_visualization/
 
   入门困难，入门后依旧困难
 
+  
 
+
+
+### Advantage
 
 - Tensorflow 优势
 
@@ -1021,11 +1019,410 @@ https://keras-zh.readthedocs.io/examples/conv_filter_visualization/
   
   ```
 
+- 自动求导
+
+  ```python
+  import tensorflow as tf
+  
+  x = tf.constant(1.)
+  a = tf.constant(2.)
+  b = tf.constant(3.)
+  c = tf.constant(4.)
+  
+  with tf.GradientTape() as tape:
+      tape.watch([a, b, c])
+      y = a ** 2 * x + b * x + c
+  
+  [dy_da, dy_db, dy_dc] = tape.gradient(y, [a, b, c])
+  print(dy_da, dy_db, dy_dc)
+  
+  """
+  tf.Tensor(4.0, shape=(), dtype=float32) 
+  tf.Tensor(1.0, shape=(), dtype=float32) 
+  tf.Tensor(1.0, shape=(), dtype=float32)
+  """
+  
+  ```
+
+- 神经网络API
+
+  `tf.matmul`, `tf.nn.conv2d`, `tf.nn.relu`, `tf.nn.max_pool2d`, `tf.nn.sigmoid`, `tf.nn.softmax`, 
+
+  `layers.Dense`, `layers.Conv2D`, `layers.SimpleRNN`, `layers.LSTM`, `layers.ReLU`, `layers.MaxPool2D`, 
+
+
+
+
+
+### Regression problem
+
+- machine learning (make decision)
+
+  increate / decrease - continuous $f_\theta (x)=y$
+
+  going left / right - discrete 
+
+- Task
+
+  **linear regression** $y=wx+b$
+
+  logistic regression (2 classification)
+
+  **classification** 
+
+  
+
+
+
+- linear regression: find w b
+
+  linear equation (exact solution)
+
+  with noise (approximate solution)
+
+- how find (gradient descent)
+
+  loss = (y_pre - y) ** 2
+
+  w = w - lr * dy_dw
+
+  函数**梯度的方向**是 **指向其值变大的方向**!!!
+
+  最小化损失: - dy_dw 梯度的反方向!!!
+
+  衰减因子 学习率 步长不能太大 (会跳过最优点)
+
+  (流到碗底 凸函数 凸优化)
+
+
+
+- find w b st. min loss (numpy)
+
+  compute loss 
+
+  calculated gradient, updated parameter
+
+  loop iteration
+
+  ![Snipaste_2024-05-15_16-04-07](res/Snipaste_2024-05-15_16-04-07.png)
+
+  ```python
+  import numpy as np
+  import matplotlib.pyplot as plt
+  
+  # hyperparameters
+  learning_rate = 0.01
+  num_iterations = 1000
+  num_points = 100
+  
+  # generate random data
+  np.random.seed(0)
+  X = np.random.randn(num_points, 1)
+  y = 0.5 * X + 2 + np.random.randn(num_points, 1) * 0.5
+  
+  # plot the data
+  plt.plot(X, y, 'rx')
+  plt.xlabel('X')
+  plt.ylabel('y')
+  plt.show()
+  
+  
+  def compute_error_for_line_given_points(b, w, points):
+      """
+      Computes the error for the line given the points (Model!)
+      :param b: y-intercept of the line
+      :param w: slope of the line
+      :param points: list of points
+      :return: error of the line
+      """
+  
+      total_error = 0
+      for i in range(0, len(points)):
+          x, y = points[i, 0], points[i, 1]
+          total_error += (y - (w * x + b)) ** 2
+  
+      return total_error / float(len(points))
+  
+  
+  def step_gradient(b_current, w_current, points, learning_rate):
+      """
+      Computes the gradient of the error function with respect to b and w
+      :param b_current: current y-intercept of the line
+      :param w_current: current slope of the line
+      :param points: list of points
+      :param learning_rate: learning rate
+      :return: updated b and w
+      """
+  
+      b_gradient, w_gradient = 0, 0
+      n = float(len(points))
+  
+      for i in range(0, len(points)):
+          x, y = points[i, 0], points[i, 1]
+          b_gradient += -(2 / n) * (y - (w_current * x + b_current))  # dE/db = 2(wx+b-y)
+          w_gradient += -(2 / n) * x * (y - (w_current * x + b_current))  # dE/dw = 2x(wx+b-y)
+  
+      # update the parameters
+      b_new = b_current - (learning_rate * b_gradient)
+      w_new = w_current - (learning_rate * w_gradient)
+  
+      return [b_new, w_new]
+  
+  
+  def gradient_descent_runner(points, starting_b, starting_w, learning_rate, num_iterations):
+      """
+      Runs the gradient descent algorithm
+      :param points: list of points
+      :param starting_b: starting y-intercept of the line
+      :param starting_w: starting slope of the line
+      :param learning_rate: learning rate
+      :param num_iterations: number of iterations to run
+      :return: updated b and w
+      """
+  
+      b, w = starting_b, starting_w
+      for i in range(num_iterations):
+          b, w = step_gradient(b, w, np.array(points), learning_rate)
+  
+      return [b, w]
+  
+  
+  # data
+  points = np.concatenate((X, y), axis=1)
+  
+  # initial values for b and w (model parameters)
+  b_initial, w_initial = 0, 0
+  print("starting grandient descent as b: {0}, w: {1}, error: {2}".format(
+      b_initial, w_initial, compute_error_for_line_given_points(b_initial, w_initial, points)
+  ))
+  
+  # run the gradient descent algorithm
+  b, w = gradient_descent_runner(points, b_initial, w_initial, learning_rate, num_iterations)
+  print("after {0} iterations, b: {1}, w: {2}, error: {3}".format(
+      num_iterations, b, w, compute_error_for_line_given_points(b, w, points)
+  ))
+  
+  # plot the data and the line
+  plt.plot(X, y, 'rx')
+  plt.plot(X, w * X + b, 'b-')
+  plt.xlabel('X')
+  plt.ylabel('y')
+  plt.show()
+  
+  ```
+
+  
+
+
+
+### Classification problem 
+
+- Discrete Problem Prediction (MNIST: Hand-written Digits Recognition)
+
+  image.shape(28,28,1) -> (28*28,1)
+
+  input: (batch, 28*28)
+
+  output: one-hot  10 classification!
+
+- Calculate
+
+  $y =wx + b$ (* 10)
+
+  $out=XW+b$   [0.1, 0.8, 0.02, 0.01, ...]  (X.shape(batch,784); W.shape(784,10); b.shape(10))
+
+  $pred=argmax(out)$  pred: 1; label: 2
+
+- Problem
+
+  It is linear! Complex tasks require **non-linear**! activation function `ReLU` 
+
+  It is simple! **multi-layer**! (Deep Learning) 
+
+- How train
+
+  forward propagation and reverse propagation
+
+  $out = relu(relu(rele(XW_1+b_1)W_2+b_2)W_3+b_3)$
+
+  $pred=argmax(out)$
+
+  $loss=MSE(out,label)$ 
+
+  Update parameters, loop iteration
+
+
+
+- Code (tensorflow)
+
+  ```python
+  import tensorflow as tf
+  from tensorflow.keras import datasets, layers, optimizers
+  from tensorflow import keras
+  
+  # hyperparameters
+  input_width = 28  # for data
+  input_height = 28  # for data
+  batch_size = 128  # for data
+  
+  classification = 10  # for model
+  num_epochs = 30  # for train
+  learning_rate = 0.001  # for train
+  
+  # data (train 60k)
+  (x, y), _ = datasets.mnist.load_data()
+  # to tensor
+  x = tf.convert_to_tensor(x, dtype=tf.float32) / 255.
+  y = tf.convert_to_tensor(y, dtype=tf.int32)
+  y = tf.one_hot(y, depth=classification)  # one-hot encoding
+  print(x.shape, y.shape)   # (60000, 28, 28), (60000, 10)
+  # train dataset
+  train_dataset = tf.data.Dataset.from_tensor_slices((x, y)).batch(batch_size)
+  
+  model = keras.Sequential([
+      # layers.Flatten(input_shape=(input_height, input_width)),
+      layers.Dense(512, activation='relu'),
+      layers.Dense(256, activation='relu'),
+      layers.Dense(classification, activation='softmax')
+  ])
+  
+  optimizer = optimizers.SGD(learning_rate=learning_rate)  # w = w - lr * grad
+  
+  
+  def train_epoch(num_epochs):
+      # loop
+      for step, (x, y) in enumerate(train_dataset):
+          with tf.GradientTape() as tape:
+              # forward propagation
+              x = tf.reshape(x, (-1, input_height * input_width))  # (batch_size, 28, 28) -> (batch_size, 784)  # flatten
+              out = model(x)  # (batch_size, 784) -> (batch_size, classification)
+              loss = tf.reduce_sum(tf.square(out - y)) / x.shape[0]  # mse loss
+  
+          # backward propagation
+          grads = tape.gradient(loss, model.trainable_variables)  # compute gradients
+          optimizer.apply_gradients(zip(grads, model.trainable_variables))  # update model parameters
+  
+          if step % 100 == 0:
+              print(f"epoch: {num_epochs}, step: {step}, loss: {loss.numpy()}")
+  
+  
+  for epoch in range(num_epochs):
+      train_epoch(epoch)
+  
+  ```
+
+  
+
+
+
+### Data Type
+
+- Data Container
+
+  `list`: [1, 1.2, "ha", (1,2)]
+
+  `np.array`: (64, 224, 224, 3)
+
+  `tf.Tensor`: 
+
+- What is Tensot?
+
+  `scalar`: 1.1 - dim=0
+
+  `vector`: [1.1] - dim=1
+
+  `matrix`: [[1.1, 2.1], [2.3, 4.5], [4,4, 6.6]]
+
+  `tensor`: rank > 2
+
+- TF is a computing lib
+
+  int, float, double
+
+  bool
+
+  string
+
+
+
+
+
+- Code
+
+  create tensor
+
+  ```python
+  import tensorflow as tf
+  
+  # create tensor
+  b = tf.constant([True, False])
+  print(b)  # tf.Tensor([True False], shape=(2,), dtype=bool)
+  
+  c = tf.constant("Hello, TensorFlow!")
+  print(c)  # tf.Tensor(b'Hello, TensorFlow!', shape=(), dtype=string)
+  
+  
+  # device
+  a = tf.constant(1.23, dtype=tf.double)  # default float32; double = float64
+  print(a)  # tf.Tensor(1.23, shape=(), dtype=float64)
+  print(a.device)  # /job:localhost/replica:0/task:0/device:GPU:0 (default)
+  
+  # shape ndim
+  print(a.shape)  # ()
+  print(a.ndim)  # 0
+  
+  f = tf.ones([2, 3, 4])
+  print(f)
+  print(f.shape)  # (2, 3, 4)
+  print(f.ndim)  # 3
+  
+  
+  # check tensor type
+  print(isinstance(a, tf.Tensor))
+  print(tf.is_tensor(a))
+  
+  ```
+
+  device
+
+  ```python
+  # device placement
+  with tf.device("/cpu:0"):
+      d = tf.constant(2.34)
+  print(d.device)  # /job:localhost/replica:0/task:0/device:CPU:0
+  
+  with tf.device("/gpu:0"):
+      e = tf.constant(3.45)
+  print(e.device)  # /job:localhost/replica:0/task:0/device:GPU:0
+  
+  
+  # copy tensor to another device
+  a_cpu = a.cpu()
+  print(a_cpu.device)  # /job:localhost/replica:0/task:0/device:CPU:0
+  a_gpu = a_cpu.gpu()
+  print(a_gpu.device)  # /job:localhost/replica:0/task:0/device:GPU:0
+  
+  # to numpy
+  a_np = a.numpy()
+  print(a_np)  # 1.23
+  
+  ```
+
   
 
 
 
 
+
+
+
+
+
+
+
+
+
+## Basic operation
 
 
 

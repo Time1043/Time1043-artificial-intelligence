@@ -6,6 +6,8 @@
 
 - Reference - note
 
+  [PyTorch for Deep Learning & Machine Learning – Full Course (freeCodeCamp.org)](https://www.youtube.com/watch?v=V_xro1bcAuA&t=10s), 
+
   [torch快速入门](https://www.youtube.com/watch?v=ejYbJ7YR_Gk)、[freeCodeCamp torch](https://www.youtube.com/watch?v=V_xro1bcAuA)、
 
   [龙曲良 torch](https://www.bilibili.com/video/BV12B4y1k7b5/)、[龙曲良 torch 同学笔记](https://github.com/WhiteCrow5/PyTorch-LearningNotes)、[龙曲良 torch 同学笔记](https://github.com/Relph1119/deeplearning-with-pytorch-notes)、[龙曲良 torch 同学笔记](https://github.com/QfanNUIST/long_pytorchstudy)、
@@ -18,7 +20,9 @@
 
   [94页论文综述卷积神经网络 arxiv 解读](https://zhuanlan.zhihu.com/p/35388569)、
 
-  [LiuEr pytorch](https://www.bilibili.com/video/BV1Y7411d7Ys/)、[note](https://blog.csdn.net/bit452/category_10569531.html)
+  [LiuEr pytorch](https://www.bilibili.com/video/BV1Y7411d7Ys/)、[note](https://blog.csdn.net/bit452/category_10569531.html), 
+
+  [GNN link!!](https://gitcode.com/jwwthu/GNN4Traffic/overview?utm_source=artical_gitcode), 
 
 - Reference - course
 
@@ -28,7 +32,7 @@
 
 
 
-# Long Torch
+# Torch (Long)
 
 - torch历史
 
